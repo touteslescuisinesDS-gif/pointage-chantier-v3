@@ -173,6 +173,11 @@ textarea{resize:vertical;min-height:60px;line-height:1.5}
 .vb-count{font-size:12px;color:var(--muted);white-space:nowrap}
 .btn-resetvu{padding:5px 11px;border:1px solid #c9a0dc;border-radius:6px;background:var(--surf);color:var(--purple);font-size:11px;font-weight:700;cursor:pointer}
 .btn-resetvu:hover{background:#f5eefa}
+.btn-filtrevu{padding:5px 11px;border:1.5px solid var(--border2);border-radius:6px;background:var(--surf);color:var(--muted);font-size:11px;font-weight:700;cursor:pointer;transition:all .15s;white-space:nowrap}
+.btn-filtrevu:hover{border-color:var(--purple);color:var(--purple)}
+.btn-filtrevu.on{background:var(--purple);border-color:var(--purple);color:#fff}
+.mcard-hiding{animation:cardFadeOut .3s ease forwards;pointer-events:none}
+@keyframes cardFadeOut{0%{opacity:1;max-height:400px;margin-bottom:14px}100%{opacity:0;max-height:0;margin-bottom:0;overflow:hidden}}
 .sgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
 .scard{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:16px;text-align:center;box-shadow:var(--shadow)}
 .scard .sn{font-size:28px;font-weight:700;line-height:1}
@@ -436,6 +441,7 @@ input[type=number]{-moz-appearance:textfield}
           <div class="vb-wrap-s"><div class="vb-fill-s" id="vuFill" style="width:0%"></div></div>
           <span class="vb-count-s" id="vuCount">0 / 0</span>
           <button class="btn-resetvu" onclick="resetVus()">↺</button>
+          <button class="btn-filtrevu" id="btnFiltreVu" onclick="toggleFiltreVu()">👁 Filtre OFF</button>
         </div>
         <div class="loc-strip" id="matHeader" style="display:none">
           <div id="matHeaderLocal"></div>
@@ -687,6 +693,7 @@ const W = window;
 // ─── ÉTAT ──────────────────────────────────────────────────────────────────
 let wb=null, wsData=[], lots=[], fileName='';
 let projectMOA='', projectOpe='', lotsInfo={};
+var filtreVuActif = false;
 let pdfDocs={}, pdfDataStore={};
 let activePdf=null, curPage=1, totPages=0, zoom=1.0;
 let selLocal='';
@@ -1254,6 +1261,38 @@ function updateVuBar(){
   var ec=document.getElementById('vuCount'); if(ec) ec.textContent=vus+' / '+total;
   var ef=document.getElementById('vuFill'); if(ef) ef.style.width=pct+'%';
 }
+function toggleFiltreVu(){
+  filtreVuActif = !filtreVuActif;
+  var btn = document.getElementById('btnFiltreVu');
+  if(btn) btn.classList.toggle('on', filtreVuActif);
+  applyFiltreVu();
+}
+
+function applyFiltreVu(){
+  var btn = document.getElementById('btnFiltreVu');
+  var cards = document.querySelectorAll('#matList .mcard');
+  var masques = 0;
+  cards.forEach(function(card){
+    var row = card._rowRef;
+    if(!row) return;
+    var vu = computeVu(row);
+    if(filtreVuActif && vu){
+      masques++;
+      if(card.style.display === 'none') return;
+      card.classList.add('mcard-hiding');
+      setTimeout(function(){ card.style.display = 'none'; card.classList.remove('mcard-hiding'); }, 300);
+    } else {
+      card.style.display = '';
+      card.classList.remove('mcard-hiding');
+    }
+  });
+  if(btn){
+    btn.textContent = filtreVuActif
+      ? '👁 Filtre ON — ' + masques + ' masqué' + (masques > 1 ? 's' : '')
+      : '👁 Filtre OFF';
+  }
+}
+
 function resetVus(){
   if(!confirm('R\u00e9initialiser tous les "Vu ce jour" ?')) return;
   wsData.forEach(function(r){r.vu=false;});
@@ -1265,6 +1304,7 @@ function tglVu(e,cardId){
   row.vu=!row.vu;
   var box=document.getElementById('vubox_'+cardId); if(box){ box.classList.toggle('on',row.vu); box.textContent=row.vu?'\u2713':''; }
   saveLocal(); updateVuBar(); renderLocalList(); snack(row.vu?'👁 Vu ce jour':'👁 Marquage retir\u00e9');
+  if(filtreVuActif) setTimeout(applyFiltreVu, 350);
 }
 
 // ─── MATÉRIELS ─────────────────────────────────────────────────────────────
@@ -1292,6 +1332,7 @@ function renderMats(){
   if(!wsData.length){ list.innerHTML='<div style="text-align:center;padding:60px 20px;color:var(--muted)"><div style="font-size:44px;margin-bottom:14px">📋</div><div>Chargez un fichier Excel</div></div>'; return; }
   if(!filtered.length){ list.innerHTML='<div style="text-align:center;padding:30px;color:var(--muted)">Aucun mat\u00e9riel pour cette s\u00e9lection</div>'; return; }
   filtered.forEach(function(row,i){ list.appendChild(buildCard(row,i)); });
+  if(filtreVuActif) setTimeout(applyFiltreVu, 0);
   updateVuBar();
 }
 
