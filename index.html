@@ -694,6 +694,7 @@ const W = window;
 let wb=null, wsData=[], lots=[], fileName='';
 let projectMOA='', projectOpe='', lotsInfo={};
 var filtreVuActif = false;
+var rapportTitre = '';
 let pdfDocs={}, pdfDataStore={};
 let activePdf=null, curPage=1, totPages=0, zoom=1.0;
 let selLocal='';
@@ -2470,21 +2471,62 @@ var LOT_TEXT   = ['#1e40af','#166534','#854d0e','#9d174d','#7c3a10','#3730a3','#
 
 function openRapportDialog(){
   if(!wsData.length){snack('Chargez un fichier Excel d\'abord');return;}
-  var dlg = document.getElementById('rapportDlg');
-  // Peupler la liste des lots
-  var cb = document.getElementById('rapportLotList');
-  cb.innerHTML = '';
+  // Préremplir champs info rapport
+  var now = new Date();
+  var dateStr = ('0'+now.getDate()).slice(-2)+'/'+('0'+(now.getMonth()+1)).slice(-2)+'/'+now.getFullYear();
+  document.getElementById('rptMOA').value = projectMOA;
+  document.getElementById('rptOpe').value = projectOpe;
+  var _d=new Date(),_ds=('0'+_d.getDate()).slice(-2)+'/'+('0'+(_d.getMonth()+1)).slice(-2)+'/'+_d.getFullYear();
+  document.getElementById('rptTitre').value = rapportTitre || ('Liste des réserves restant à lever — OPR du '+_ds);
+  // Peupler le tableau des lots
+  var tbody = document.getElementById('rapportLotBody');
+  tbody.innerHTML = '';
   var sortedLots = lots.slice().sort(function(a,b){return String(a).localeCompare(String(b),'fr',{numeric:true});});
   sortedLots.forEach(function(l){
     var info = lotsInfo[l]||{};
-    var lbl = l + (info.nom?' — '+info.nom:'') + (info.entreprise?' ('+info.entreprise+')':'');
-    var row = document.createElement('label');
-    row.className = 'rpt-lot-row';
-    row.innerHTML = '<input type="checkbox" value="'+l+'" checked> '+lbl;
-    cb.appendChild(row);
+    var tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td class="td-ck"><input type="checkbox" value="'+l+'" checked style="accent-color:rgb(13,124,159);width:14px;height:14px;cursor:pointer"></td>'
+      +'<td class="td-num">'+l+'</td>'
+      +'<td><input class="rpt-lot-input" data-lot="'+l+'" data-field="nom" value="'+esc(info.nom||'')+'"></td>'
+      +'<td><input class="rpt-lot-input" data-lot="'+l+'" data-field="entreprise" value="'+esc(info.entreprise||'')+'"></td>';
+    tbody.appendChild(tr);
   });
-  dlg.classList.add('open');
+  // Écouter modifications des champs lot
+  tbody.querySelectorAll('.rpt-lot-input').forEach(function(inp){
+    inp.addEventListener('input', function(){
+      var lot = inp.getAttribute('data-lot');
+      var field = inp.getAttribute('data-field');
+      if(!lotsInfo[lot]) lotsInfo[lot]={};
+      lotsInfo[lot][field] = inp.value.trim();
+      inp.classList.toggle('modified', inp.value.trim() !== '');
+      // Sync dans wb si disponible
+      if(wb && wb.Sheets['Lots']){
+        var wsL = wb.Sheets['Lots'];
+        var raw = XLSX.utils.sheet_to_json(wsL,{header:1,defval:''});
+        for(var li=1;li<raw.length;li++){
+          if(String(raw[li][0]||'').trim()===lot){
+            if(field==='nom') XLSX.utils.sheet_add_aoa(wsL,[[inp.value]],{origin:{r:li,c:1}});
+            if(field==='entreprise') XLSX.utils.sheet_add_aoa(wsL,[[inp.value]],{origin:{r:li,c:3}});
+            break;
+          }
+        }
+      }
+    });
+  });
+  // Écouter modifications MOA/Ope/Titre
+  document.getElementById('rptMOA').oninput = function(){
+    projectMOA = this.value.trim();
+    if(wb && wb.Sheets['Client']) XLSX.utils.sheet_add_aoa(wb.Sheets['Client'],[[projectMOA]],{origin:{r:0,c:11}});
+  };
+  document.getElementById('rptOpe').oninput = function(){
+    projectOpe = this.value.trim();
+    if(wb && wb.Sheets['Client']) XLSX.utils.sheet_add_aoa(wb.Sheets['Client'],[[projectOpe]],{origin:{r:0,c:12}});
+  };
+  document.getElementById('rptTitre').oninput = function(){ rapportTitre = this.value; };
+  document.getElementById('rapportDlg').classList.add('open');
 }
+
 function closeRapportDialog(){
   document.getElementById('rapportDlg').classList.remove('open');
 }
@@ -2494,13 +2536,19 @@ document.addEventListener('click',function(e){
 });
 
 function genererRapport(){
+  // Lire champs modifiables depuis le dialogue
+  var rptMOA = (document.getElementById('rptMOA')||{}).value || projectMOA;
+  var rptOpe = (document.getElementById('rptOpe')||{}).value || projectOpe;
+  var now0 = new Date();
+  var dateStr0 = ('0'+now0.getDate()).slice(-2)+'/'+('0'+(now0.getMonth()+1)).slice(-2)+'/'+now0.getFullYear();
+  var rptTitre = (document.getElementById('rptTitre')||{}).value || rapportTitre || ('Liste des r\u00e9serves restant \u00e0 lever \u2014 OPR du '+dateStr0);
+  // Lots s\u00e9lectionn\u00e9s depuis le nouveau tableau
   var masquerMES = document.getElementById('rapportMasquerMES').checked;
-  var lotChecks = document.querySelectorAll('#rapportLotList input[type=checkbox]:checked');
+  var lotChecks = document.querySelectorAll('#rapportLotBody input[type=checkbox]:checked');
   var lotsChoisis = Array.from(lotChecks).map(function(cb){return cb.value;});
-  if(!lotsChoisis.length){snack('Sélectionnez au moins un lot');return;}
+  if(!lotsChoisis.length){snack('S\u00e9lectionnez au moins un lot');return;}
   closeRapportDialog();
-
-  // Filtrer et trier
+  var dateStr = dateStr0;
   var data = wsData.filter(function(r){
     if(!lotsChoisis.includes(r.lot)) return false;
     if(masquerMES && r.mes && !r.remarque) return false;
@@ -2667,8 +2715,8 @@ function genererRapport(){
     +'<div class="page-header">'
     +'<div class="logo-box"><div class="logo-txt">TOUTES LES<br>CUISINES<br>ING&Eacute;NIERIE</div></div>'
     +'<div class="hdr-center">'
-    +'<div class="hdr-mo">Ma\u00eetre d\'ouvrage : '+esc(projectMOA)+' &mdash; Op\u00e9ration : '+esc(projectOpe)+'</div>'
-    +'<div class="hdr-big">Liste des r\u00e9serves restant \u00e0 lever &mdash; \u00e9dit\u00e9 le '+dateStr+'</div>'
+    +'<div class="hdr-mo">Ma\u00eetre d\'ouvrage : '+esc(rptMOA)+' &mdash; Op\u00e9ration : '+esc(rptOpe)+'</div>'
+    +'<div class="hdr-big">'+esc(rptTitre)+'</div>'
     +'<div class="hdr-meta"><span>'+lotsTitle+'</span>'+(entreprisesTitle?'<span>Entreprise : <b>'+esc(entreprisesTitle)+'</b></span>':'')+'</div>'
     +'</div>'
     +'<div class="hdr-right"><div class="hdr-date">\u00c9dition du</div><div class="hdr-edition">'+dateStr+'</div></div>'
@@ -2692,7 +2740,7 @@ function genererRapport(){
     +'<div class="page-header">'
     +'<div class="logo-box"><div class="logo-txt">TOUTES LES<br>CUISINES<br>ING&Eacute;NIERIE</div></div>'
     +'<div class="hdr-center">'
-    +'<div class="hdr-mo">Ma\u00eetre d\'ouvrage : '+esc(projectMOA)+' &mdash; Op\u00e9ration : '+esc(projectOpe)+'</div>'
+    +'<div class="hdr-mo">Ma\u00eetre d\'ouvrage : '+esc(rptMOA)+' &mdash; Op\u00e9ration : '+esc(rptOpe)+'</div>'
     +'<div class="hdr-big">Synth\u00e8se d\'avancement &mdash; \u00e9dit\u00e9 le '+dateStr+'</div>'
     +'<div class="hdr-meta"><span>Lots : <b>'+lotsChoisis.join(' \u00b7 ')+'</b></span></div>'
     +'</div>'
@@ -2752,7 +2800,8 @@ function genererRapport(){
 }
 
 function rapportToutCocher(state){
-  document.querySelectorAll('#rapportLotList input[type=checkbox]').forEach(function(cb){ cb.checked=state; });
+  document.querySelectorAll('#rapportLotBody input[type=checkbox]').forEach(function(cb){ cb.checked=state; });
+  var all = document.getElementById('rptCheckAll'); if(all) all.checked=state;
 }
 
 function getStatutGauge(r){
@@ -2765,42 +2814,73 @@ function getStatutGauge(r){
 // ── Popup dialogue rapport ────────────────────────────────────────────────
 
 </script>
-<!-- ═══ DIALOGUE RAPPORT ══════════════════════════════════════════════════ -->
+<!-- ═══ DIALOGUE RAPPORT ══════════════════════ -->
 <style>
 #rapportDlg{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:700;display:none;align-items:center;justify-content:center}
 #rapportDlg.open{display:flex}
-#rapportBox{background:var(--surf);border-radius:var(--r2);padding:22px;width:460px;max-width:94vw;max-height:85vh;overflow-y:auto;box-shadow:var(--shadow2)}
-#rapportBox h2{font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px}
-#rapportBox p{font-size:12px;color:var(--muted);margin-bottom:14px}
-.rpt-section{font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;margin-top:14px}
-#rapportLotList{max-height:200px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--r);padding:8px 10px;display:flex;flex-direction:column;gap:6px}
-.rpt-lot-row{font-size:12px;color:var(--text);display:flex;align-items:center;gap:8px;cursor:pointer}
-.rpt-lot-row input{width:15px;height:15px;accent-color:rgb(13,124,159);cursor:pointer;flex-shrink:0}
-.rpt-options{margin-top:10px;display:flex;flex-direction:column;gap:8px}
+#rapportBox{background:var(--surf);border-radius:var(--r2);padding:24px 28px;width:700px;max-width:96vw;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow2)}
+#rapportBox h2{font-size:14px;font-weight:700;color:var(--text);margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid rgb(21,164,201)}
+.rpt-section{font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:rgb(13,124,159);margin-bottom:8px;margin-top:16px;padding-bottom:4px;border-bottom:1px solid var(--border)}
+.rpt-field{margin-bottom:10px}
+.rpt-field label{font-size:11px;font-weight:600;color:var(--muted);display:block;margin-bottom:4px}
+.rpt-field input[type=text]{width:100%;padding:7px 10px;border:1.5px solid var(--border2);border-radius:var(--r);font-size:12px;font-family:inherit;color:var(--text);background:var(--surf);outline:none}
+.rpt-field input[type=text]:focus{border-color:rgb(13,124,159);box-shadow:0 0 0 2px rgba(13,124,159,.12)}
+#rapportLotTable{width:100%;border-collapse:collapse;font-size:12px;margin-top:6px}
+#rapportLotTable thead tr{background:rgb(240,249,252)}
+#rapportLotTable th{padding:6px 8px;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:rgb(13,124,159);border-bottom:2px solid rgb(21,164,201);text-align:left}
+#rapportLotTable th.th-ck{width:36px;text-align:center}
+#rapportLotTable th.th-num{width:64px}
+#rapportLotTable td{padding:4px 6px;border-bottom:0.5px solid var(--border);vertical-align:middle}
+#rapportLotTable td.td-ck{text-align:center}
+#rapportLotTable td.td-num{font-family:monospace;font-size:11px;font-weight:700;color:rgb(13,124,159)}
+.rpt-lot-input{width:100%;padding:4px 7px;border:1px solid transparent;border-radius:5px;font-size:11px;font-family:inherit;color:var(--text);background:transparent;outline:none}
+.rpt-lot-input:focus{border-color:rgb(13,124,159);background:var(--surf)}
+.rpt-lot-input.modified{border-color:var(--accent)!important;background:#fffbf0!important}
+.rpt-selall{font-size:11px;color:rgb(13,124,159);cursor:pointer;text-decoration:underline;display:inline-block}
+.rpt-options{margin-top:8px;display:flex;flex-direction:column;gap:8px}
 .rpt-opt-row{font-size:12px;color:var(--text);display:flex;align-items:center;gap:8px;cursor:pointer}
 .rpt-opt-row input{width:15px;height:15px;accent-color:rgb(13,124,159);cursor:pointer;flex-shrink:0}
-.rpt-btns{display:flex;gap:8px;margin-top:16px;justify-content:flex-end}
+.rpt-btns{display:flex;gap:8px;margin-top:18px;justify-content:flex-end;align-items:center}
+.rpt-save-hint{font-size:11px;color:var(--muted);flex:1;font-style:italic}
 .rpt-btn-ok{padding:9px 20px;border:none;border-radius:var(--r);background:rgb(13,124,159);color:#fff;font-size:13px;font-weight:700;cursor:pointer}
 .rpt-btn-ok:hover{background:rgb(21,164,201)}
 .rpt-btn-cancel{padding:9px 14px;border:1px solid var(--border);border-radius:var(--r);background:var(--surf);color:var(--muted);font-size:13px;cursor:pointer}
-.rpt-selall{font-size:11px;color:rgb(13,124,159);cursor:pointer;text-decoration:underline;margin-bottom:4px;display:inline-block}
 </style>
 <div id="rapportDlg">
   <div id="rapportBox">
     <h2>📄 Générer le rapport de pointage</h2>
-    <p>Sélectionnez les lots à inclure et les options d'affichage.</p>
+
+    <div class="rpt-section">Informations du rapport</div>
+    <div class="rpt-field"><label>Maître d’ouvrage</label><input type="text" id="rptMOA" placeholder="Nom du maître d’ouvrage"></div>
+    <div class="rpt-field"><label>Opération</label><input type="text" id="rptOpe" placeholder="Nom de l’opération"></div>
+    <div class="rpt-field"><label>Titre du rapport</label><input type="text" id="rptTitre" placeholder="Titre du rapport"></div>
+
     <div class="rpt-section">Lots à inclure</div>
-    <span class="rpt-selall" onclick="rapportToutCocher(true)">Tout cocher</span> &nbsp;
-    <span class="rpt-selall" onclick="rapportToutCocher(false)">Tout décocher</span>
-    <div id="rapportLotList"></div>
+    <div style="margin-bottom:6px;display:flex;align-items:center;gap:12px">
+      <span class="rpt-selall" onclick="rapportToutCocher(true)">Tout cocher</span>
+      <span class="rpt-selall" onclick="rapportToutCocher(false)">Tout décocher</span>
+      <span style="font-size:11px;color:var(--muted);font-style:italic">Les modifications sont mémorisées et exportées dans le XLS</span>
+    </div>
+    <table id="rapportLotTable">
+      <thead><tr>
+        <th class="th-ck"><input type="checkbox" id="rptCheckAll" onchange="rapportToutCocher(this.checked)" style="accent-color:rgb(13,124,159);width:14px;height:14px;cursor:pointer"></th>
+        <th class="th-num">N° Lot</th>
+        <th>Nom du lot</th>
+        <th>Entreprise</th>
+      </tr></thead>
+      <tbody id="rapportLotBody"></tbody>
+    </table>
+
     <div class="rpt-section">Options</div>
     <div class="rpt-options">
       <label class="rpt-opt-row">
-        <input type="checkbox" id="rapportMasquerMES" checked>
+        <input type="checkbox" id="rapportMasquerMES">
         Masquer les matériels mis en service sans observation (lignes 5/5)
       </label>
     </div>
+
     <div class="rpt-btns">
+      <span class="rpt-save-hint">💾 Modifications automatiquement mémorisées</span>
       <button class="rpt-btn-cancel" onclick="closeRapportDialog()">Annuler</button>
       <button class="rpt-btn-ok" onclick="genererRapport()">📄 Générer le PDF</button>
     </div>
