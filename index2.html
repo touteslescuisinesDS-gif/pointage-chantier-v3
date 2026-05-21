@@ -2759,7 +2759,7 @@ function genererRapport(){
   var html = '<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8">'
     +'<title>Rapport pointage</title>'
     +'<style>'
-    +'@page{size:A4 landscape;margin:14mm 8mm 12mm 8mm}'
+    +'@page{size:A4 landscape;margin:0}'
     +'*{box-sizing:border-box;margin:0;padding:0;font-family:Arial,Helvetica,sans-serif}'
     +'body{font-size:7pt;color:#1a2332;background:#fff;padding:8mm 8mm 10mm 8mm}'
     +'.page-header{background:rgb(13,124,159);padding:7px 12px;display:flex;align-items:center;gap:10px;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}'
@@ -2781,17 +2781,17 @@ function genererRapport(){
     +'table.rpt thead th:last-child{border-right:none}'
     +'table.rpt tr{border-bottom:.5pt solid #d1dbe8;page-break-inside:avoid}'
     +'table.rpt td{padding:3px 5px;vertical-align:top;color:#1a2332}'
-    +'.td-loc{font-size:7pt;color:#1a2332;width:35%}'
-    +'.td-mat{font-size:7pt;color:#1a2332;line-height:1.35;width:65%}'
-    +'.td-rep{font-size:7pt;font-weight:700;color:rgb(13,124,159);font-family:Courier,monospace;width:50px}'
-    +'.td-qty{font-size:7pt;text-align:center;width:24px}'
-    +'.td-gauge{width:88px}'
+    +'.td-loc{font-size:7pt;color:#1a2332;width:19%}'
+    +'.td-mat{font-size:7pt;color:#1a2332;line-height:1.35;width:23%}'
+    +'.td-rep{font-size:7pt;font-weight:700;color:rgb(13,124,159);font-family:Courier,monospace;width:5%}'
+    +'.td-qty{font-size:7pt;text-align:center;width:4%}'
+    +'.td-gauge{width:9%}'
     +'.gauge-bar{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}'
     +'.td-rem{font-size:7pt;color:#5a7089;line-height:1.35}'
-    +'.td-lot{width:52px;text-align:center}'
+    +'.td-lot{width:5%;text-align:center}'
     +'.recup-tag{font-size:6pt;color:#A32D2D;margin-left:4px}'
     +'.rem-txt{white-space:pre-wrap;font-size:7pt}'
-    +'.page-footer{display:flex;justify-content:space-between;padding:3px 0;border-top:1.5px solid rgb(21,164,201);background:#f0f9fc;font-size:7pt;color:rgb(13,124,159);font-weight:600;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;margin-top:8px}'
+    +'.page-footer{position:fixed;bottom:0;left:0;right:0;display:flex;justify-content:space-between;padding:3px 10px;border-top:1.5px solid rgb(21,164,201);background:#f0f9fc;font-size:7pt;color:rgb(13,124,159);font-weight:600;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}'
     +'.synth-page{page-break-before:always}'
     +'.synth-kpi{display:flex;gap:8px;margin:10px 0}'
     +'.kpi-card{flex:1;background:#f0f9fc;border-radius:5px;border:.5px solid #b8e0ec;padding:7px 10px;text-align:center;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}'
@@ -2804,7 +2804,7 @@ function genererRapport(){
     +'.sign-zone{display:flex;gap:12px;margin-top:12px}'
     +'.sign-box{flex:1;border:.5px solid #d1dbe8;border-radius:5px;padding:8px 10px;min-height:50px}'
     +'.sign-lbl{font-size:6.5pt;color:#5a7089;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}'
-    +'@media print{body{padding:0}.page-footer{margin-top:8px}}'
+    +'@media print{body{padding:8mm 8mm 14mm 8mm}.page-footer{position:fixed;bottom:0}}'
     +'</style></head><body>'
     // En-tête page détail
     +'<div class="page-header">'
@@ -2819,17 +2819,17 @@ function genererRapport(){
     // Tableau avec thead répété (Fix 2+3)
     +'<table class="rpt">'
     +'<thead><tr>'
-    +'<th style="width:35%">Local</th>'
-    +'<th style="width:65%">Mat\u00e9riel</th>'
-    +'<th style="width:50px">Rep\u00e8re</th>'
-    +'<th style="width:24px;text-align:center">Qt\u00e9</th>'
-    +'<th style="width:88px">Avancement</th>'
-    +'<th>Remarques</th>'
-    +'<th style="width:52px;text-align:center">Lot</th>'
+    +'<th style="width:19%">Local</th>'
+    +'<th style="width:23%">Mat\u00e9riel</th>'
+    +'<th style="width:5%">Rep\u00e8re</th>'
+    +'<th style="width:4%;text-align:center">Qt\u00e9</th>'
+    +'<th style="width:9%">Avancement</th>'
+    +'<th style="width:35%">Remarques</th>'
+    +'<th style="width:5%;text-align:center">Lot</th>'
     +'</tr></thead>'
     +'<tbody>'+rows+'</tbody></table>'
     // Pied de page
-    +'<div class="page-footer"><span>&copy; Toutes les cuisines ing\u00e9nierie</span></div>'
+    +'<div class="page-footer"><span>&copy; Toutes les cuisines ing\u00e9nierie</span><span id="pf-pg">Page 1</span></div>'
     // PAGE SYNTHÈSE
     +'<div class="synth-page">'
     +'<div class="page-header">'
@@ -2892,7 +2892,20 @@ function genererRapport(){
   win.document.close();
   // Attendre le chargement complet avant d'imprimer
   // La numérotation est gérée par Edge/Chrome nativement via @page
-  setTimeout(function(){ win.print(); }, 800);
+  win.onload = function(){
+    // Calcul du nombre de pages réelles via estimation hauteur
+    try{
+      var body = win.document.body;
+      var totalH = body.scrollHeight;
+      var pageH = win.document.documentElement.scrollWidth > win.document.documentElement.scrollHeight
+        ? Math.round(win.innerWidth * 297 / 420) // A4 paysage
+        : win.innerHeight;
+      var nbPages = Math.max(1, Math.ceil(totalH / pageH));
+      var spans = win.document.querySelectorAll('#pf-pg');
+      spans.forEach(function(sp, i){ sp.textContent = 'Page '+(i+1)+' / '+nbPages; });
+    } catch(e){}
+    setTimeout(function(){ win.print(); }, 400);
+  };
 }
 
 function rapportToutCocher(state){
