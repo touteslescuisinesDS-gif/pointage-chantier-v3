@@ -2645,6 +2645,20 @@ function genererRapport(){
   if(!lotsChoisis.length){snack('S\u00e9lectionnez au moins un lot');return;}
   closeRapportDialog();
   var dateStr = dateStr0;
+  // S'assurer que lotsInfo est à jour depuis le workbook
+  if(wb && wb.Sheets['Lots']){
+    var _wsL=wb.Sheets['Lots'];
+    var _lRaw=XLSX.utils.sheet_to_json(_wsL,{header:1,defval:''});
+    for(var _li=1;_li<_lRaw.length;_li++){
+      var _lr=_lRaw[_li];
+      var _lnum=String(_lr[0]||'').trim();
+      if(!_lnum) continue;
+      if(!lotsInfo[_lnum]) lotsInfo[_lnum]={};
+      // Ne pas écraser si déjà modifié par l'utilisateur dans le dialogue
+      if(!lotsInfo[_lnum].nom) lotsInfo[_lnum].nom=String(_lr[1]||'').trim();
+      if(!lotsInfo[_lnum].entreprise) lotsInfo[_lnum].entreprise=String(_lr[3]||'').trim();
+    }
+  }
   var data = wsData.filter(function(r){
     if(!lotsChoisis.includes(r.lot)) return false;
     if(masquerMES && r.mes && !r.remarque) return false;
@@ -2738,7 +2752,7 @@ function genererRapport(){
       segs+='<div style="background:'+clr+'!important;width:'+pct+'%;height:100%;display:inline-flex;align-items:center;justify-content:center;font-size:5.5pt;color:#fff;font-weight:600;overflow:hidden;min-width:0;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important">'+pct+'%</div>';
     });
     chartRows += '<tr>'
-      +'<td style="text-align:right;font-size:7pt;color:#5a7a8a;width:50px;padding-right:6px">Lot '+l+'</td>'
+      +'<td style="text-align:right;font-size:7pt;color:#5a7a8a;width:80px;padding-right:6px;white-space:nowrap">Lot '+l+'</td>'
       +'<td style="padding:0"><div style="height:16px;background:#f0f0f0;border-radius:3px;overflow:hidden;display:flex;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important">'+segs+'</div></td>'
       +'<td style="font-size:7pt;color:#5a7a8a;padding-left:5px;white-space:nowrap">'+s.total+' mat.</td>'
       +'</tr>';
