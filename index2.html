@@ -30,7 +30,13 @@ body{font-family:'Segoe UI','Trebuchet MS',sans-serif;background:var(--bg);color
 .hdr-proj strong{color:var(--accent)}
 .hdr-btn{padding:7px 14px;border:1px solid var(--border);border-radius:6px;background:var(--surf);color:var(--text);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;flex-shrink:0;box-shadow:var(--shadow)}
 .hdr-btn.ok{background:var(--ok);border-color:var(--ok);color:#fff}
-#tabBar{height:var(--tbh);flex-shrink:0;background:var(--surf);border-bottom:2px solid var(--border);display:flex;align-items:stretch;padding:0 8px;gap:2px;box-shadow:var(--shadow);overflow-x:auto}
+#tabBar{flex-shrink:0;background:var(--surf);border-bottom:2px solid var(--border);display:flex;flex-direction:column;box-shadow:var(--shadow)}
+#tabBarMain{display:flex;align-items:stretch;padding:0 8px;gap:2px;background:var(--surf);overflow-x:auto;height:var(--tbh)}
+#tabBarPdf{display:none;align-items:stretch;padding:0 8px;gap:2px;background:#f0f9fc;border-top:1px solid var(--tlc-border,#b8e0ec);overflow-x:auto;min-height:34px}
+#tabBarPdf.has-tabs{display:flex}
+#tabBarPdf .tab{font-size:11px;padding:0 10px;color:rgb(13,124,159)}
+#tabBarPdf .tab.active{color:rgb(13,124,159);border-bottom-color:rgb(13,124,159)}
+#tabBarPdf .tab:hover{color:rgb(21,164,201)}
 .tab{display:flex;align-items:center;gap:6px;padding:0 14px;border:none;border-bottom:3px solid transparent;background:transparent;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;margin-bottom:-2px;white-space:nowrap;flex-shrink:0}
 .tab:hover{color:var(--text)}
 .tab.active{color:var(--accent);border-bottom-color:var(--accent)}
@@ -385,23 +391,27 @@ input[type=number]{-moz-appearance:textfield}
   <button class="hdr-btn ok" id="btnExHdr" onclick="exportXLSX()" style="display:none">📤 Exporter XLS</button>
 </div>
 <div id="tabBar">
-  <button class="tab active" data-tab="fichiers" onclick="showTab('fichiers')">📋 Projet</button>
-  <button class="tab" data-tab="pointage" onclick="showTab('pointage')">📋 Pointage</button>
-  <div id="pdfTabsInBar" style="display:contents"></div>
-  <button class="tab" data-tab="notes" onclick="showTab('notes')">📝 Bloc-notes</button>
-  <button class="tab" data-tab="photos" onclick="showTab('photos')">📷 Photos</button>
-  <button class="tab" data-tab="avancement" onclick="showTab('avancement')">📊 Avancement</button>
-  <button class="tab" data-tab="masse" onclick="showTab('masse')">⚡ Masse</button>
+  <div id="tabBarMain">
+    <button class="tab active" data-tab="fichiers" onclick="showTab('fichiers')">📋 Projet</button>
+    <button class="tab" data-tab="pointage" onclick="showTab('pointage')">🖼 Pointage</button>
+    <button class="tab" data-tab="notes" onclick="showTab('notes')">📝 Bloc-notes</button>
+    <button class="tab" data-tab="photos" onclick="showTab('photos')">📷 Photos</button>
+    <button class="tab" data-tab="avancement" onclick="showTab('avancement')">📊 Avancement</button>
+    <button class="tab" data-tab="masse" onclick="showTab('masse')">⚡ Masse</button>
+  </div>
+  <div id="tabBarPdf"></div>
 </div>
 <div id="appBody">
   <div id="leftPanel" class="hidden">
     <div class="pnl-sec"><div class="pnl-ttl">Zone</div><select id="selZone" onchange="onZoneChange()"><option value="">Toutes les zones</option></select></div>
     <div class="pnl-sec"><div class="pnl-ttl">Lot</div><select id="selLot" onchange="renderMats()"><option value="">Tous les lots</option></select></div>
-    <div class="pnl-sec grow">
-      <div class="pnl-ttl" style="display:flex;align-items:center;justify-content:space-between">
+    <div class="pnl-sec" style="flex-shrink:0">
+      <div class="pnl-ttl" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0">
         <span>Locaux <span id="lcnt" style="color:var(--accent)"></span></span>
         <button id="btnFiltreLocaux" onclick="toggleFiltreLocaux()" style="font-size:10px;padding:2px 7px;border:1px solid var(--border2);border-radius:5px;background:var(--surf);color:var(--muted);cursor:pointer;font-weight:600;white-space:nowrap" title="Masquer les locaux vus à 100%">👁 Cacher vus</button>
       </div>
+    </div>
+    <div class="pnl-sec grow" style="padding-top:6px">
       <div id="localList"></div>
     </div>
   </div>
@@ -917,18 +927,20 @@ function renderPdfFileList(){
 }
 
 function renderPdfTabs(){
-  var bar=document.getElementById('pdfTabsInBar'); if(!bar) return;
+  var bar=document.getElementById('tabBarPdf'); if(!bar) return;
   bar.innerHTML='';
   Object.keys(pdfDocs).forEach(function(name){
     var btn=document.createElement('button');
     btn.className='tab'+(activePdf===name?' active':'');
     btn.dataset.tab='pdf_'+name;
-    btn.style.cssText='max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;padding:0 10px;flex-shrink:0';
+    btn.style.cssText='max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;padding:0 10px;flex-shrink:0';
     btn.title=name;
-    btn.textContent='📄 '+name.replace(/\.pdf$/i,'');
+    btn.textContent='\U0001f4c4 '+name.replace(/\.pdf$/i,'');
     btn.addEventListener('click',function(){ showTab('plans'); openPDF(name); });
     bar.appendChild(btn);
   });
+  // Afficher la 2e ligne seulement si des PDF sont chargés
+  bar.classList.toggle('has-tabs', Object.keys(pdfDocs).length > 0);
 }
 
 function delPDF(name){
@@ -1429,11 +1441,7 @@ function buildCard(row,idx){
   var icoM=document.createElement('span'); icoM.id='ckico_m_'+id; icoM.textContent=row.mes?'✅':'⚡'; if(!row.mes) icoM.style.filter='grayscale(1) opacity(.45)';
   mkM.appendChild(icoM); mkM.appendChild(document.createTextNode(' En service'));
   mcks.appendChild(mkL); mcks.appendChild(mkI); mcks.appendChild(mkM);
-  if(hasPdfs&&row.repere){
-    var pdfbtn=document.createElement('div'); pdfbtn.className='mck'; pdfbtn.id='pdfbtn_'+id;
-    pdfbtn.style.cssText='border-color:var(--purple);color:var(--purple);background:#f9f0ff';
-    pdfbtn.textContent='🔍 PDF'; mcks.appendChild(pdfbtn);
-  }
+  // Bouton PDF retiré de la rangée Livré/Installé/MES (reste dans mmeta)
   var remzone=document.createElement('div'); remzone.className='mrem-zone'; remzone.id='remzone_'+id;
   var remcont=document.createElement('div'); remcont.className='mrem-content'+(row.remarque?' has-rem':''); remcont.id='remcontent_'+id;
   remcont.innerHTML=remHtml+(remLines.length>0?'<span class="mrem-count">'+remLines.length+'</span>':'');
