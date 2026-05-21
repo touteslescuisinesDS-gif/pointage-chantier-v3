@@ -776,15 +776,20 @@ function showTab(t){
   if(_ct&&_ct.dataset.tab==='notes'&&t!=='notes') saveNotePage();
   if(activePdf&&t!=='plans') saveSnap();
   document.getElementById('leftPanel').classList.toggle('hidden',t!=='pointage');
+  var rp = document.getElementById('rightPanel');
+  if(t==='plans'){
+    fixPdfH();
+    rp.style.overflow='hidden';
+    rp.style.padding='0';
+  } else {
+    // Réinitialiser les styles forcés par l'onglet plans
+    rp.style.overflow='';
+    rp.style.padding='';
+  }
   if(t==='avancement') renderAvancement();
   if(t==='masse'){
     populateMasseLotFilter();
     renderMasse();
-  }
-  if(t==='plans'){
-    fixPdfH();
-    document.getElementById('rightPanel').style.overflow='hidden';
-    document.getElementById('rightPanel').style.padding='0';
   }
   if(t==='notes') initNoteCanvas();
   if(t==='photos') renderPhotoGallery();
