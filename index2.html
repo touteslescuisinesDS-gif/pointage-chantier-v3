@@ -935,7 +935,7 @@ function renderPdfTabs(){
     btn.dataset.tab='pdf_'+name;
     btn.style.cssText='max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;padding:0 10px;flex-shrink:0';
     btn.title=name;
-    btn.textContent='\U0001f4c4 '+name.replace(/\.pdf$/i,'');
+    btn.textContent='📄 '+name.replace(/\.pdf$/i,'');
     btn.addEventListener('click',function(){ showTab('plans'); openPDF(name); });
     bar.appendChild(btn);
   });
