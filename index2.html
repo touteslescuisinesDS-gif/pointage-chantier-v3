@@ -648,7 +648,8 @@ input[type=number]{-moz-appearance:textfield}
       <div id="remCurrent" class="rem-current empty">Aucune remarque</div>
       <div class="rem-actions">
         <button class="rab danger" onclick="remEffacer()"><span class="rab-ico">🗑</span><div><div class="rab-txt">Effacer tout</div><div class="rab-sub">Supprime toutes les remarques</div></div></button>
-        <button class="rab" onclick="remNouvelle()"><span class="rab-ico">✏️</span><div><div class="rab-txt">Nouvelle remarque</div><div class="rab-sub">Saisie libre — préfixée de la date du jour</div></div></button>
+        <button class="rab" onclick="remEditer()"><span class="rab-ico">✏️</span><div><div class="rab-txt">Éditer</div><div class="rab-sub">Modifier le texte existant</div></div></button>
+        <button class="rab" onclick="remNouvelle()"><span class="rab-ico">➕</span><div><div class="rab-txt">Nouvelle remarque</div><div class="rab-sub">Saisie libre — préfixée de la date du jour</div></div></button>
         <button class="rab" onclick="remFrequente()"><span class="rab-ico">📋</span><div><div class="rab-txt">Remarque fréquente</div><div class="rab-sub">Liste prédéfinie et remarques de session</div></div></button>
       </div>
       <div id="remEditZone" style="display:none;margin-top:10px"><textarea id="remEditText" rows="5" style="width:100%;box-sizing:border-box;padding:10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;resize:vertical;color:var(--text)"></textarea><div style="display:flex;gap:8px;margin-top:8px"><button class="btn btn-ok btn-sm" onclick="remEditerValider()" style="flex:1">✅ Enregistrer</button><button class="btn btn-ghost btn-sm" onclick="remEditerAnnuler()">✕ Annuler</button></div></div>
@@ -1540,6 +1541,7 @@ function addRemarque(txt){
   refreshRemCurrent(row); refreshRemZone(remCardId,row);
 }
 
+function remEditer(){ remEditerOuvrir(); }
 function remEditerOuvrir(){
   var row=getRow(remCardId); if(!row) return;
   if(!row.remarque){snack('Aucune remarque à éditer');return;}
