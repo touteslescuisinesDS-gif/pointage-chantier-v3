@@ -330,6 +330,7 @@ input[type=number]{-moz-appearance:textfield}
 #masseTable th.th-sel{width:36px;padding:9px 8px;text-align:center}
 #masseTable th.th-mat{min-width:200px}
 #masseTable th.th-loc{min-width:120px}
+#masseTable th.th-qty{width:42px;text-align:center}
 #masseTable th.th-rep{width:80px}
 #masseTable th.th-lot{width:90px}
 #masseTable th.th-ck{width:84px;text-align:center}
@@ -599,6 +600,7 @@ input[type=number]{-moz-appearance:textfield}
               <th class="th-sel"><input type="checkbox" class="cb-all" id="masseCheckAll" onchange="masseToogleAll(this.checked)" title="Tout sélectionner"></th>
               <th class="th-mat">Matériel</th>
               <th class="th-loc">Local</th>
+              <th class="th-qty">Qté</th>
               <th class="th-rep">Repère</th>
               <th class="th-lot">Lot</th>
               <th class="th-ck">Livré</th>
@@ -2327,6 +2329,8 @@ function buildMasseRow(row){
 
   // Local
   var tdLoc = document.createElement('td'); tdLoc.className='td-loc'; tdLoc.textContent=row.local; tr.appendChild(tdLoc);
+  // Quantité
+  var tdQty = document.createElement('td'); tdQty.className='td-qty'; tdQty.style.textAlign='center'; tdQty.textContent=row.nbre||1; tr.appendChild(tdQty);
   // Repère
   var tdRep = document.createElement('td'); tdRep.className='td-rep'; tdRep.textContent=row.repere||'—'; tr.appendChild(tdRep);
   // Lot
@@ -2755,7 +2759,7 @@ function genererRapport(){
   var html = '<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8">'
     +'<title>Rapport pointage</title>'
     +'<style>'
-    +'@page{size:A4 landscape;margin:0}'
+    +'@page{size:A4 landscape;margin:14mm 8mm 12mm 8mm}'
     +'*{box-sizing:border-box;margin:0;padding:0;font-family:Arial,Helvetica,sans-serif}'
     +'body{font-size:7pt;color:#1a2332;background:#fff;padding:8mm 8mm 10mm 8mm}'
     +'.page-header{background:rgb(13,124,159);padding:7px 12px;display:flex;align-items:center;gap:10px;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}'
@@ -2776,10 +2780,9 @@ function genererRapport(){
     +'table.rpt thead th{font-size:6.5pt;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:rgb(13,124,159);padding:4px 5px;border-right:.5px solid #c0d8e4;text-align:left;vertical-align:bottom}'
     +'table.rpt thead th:last-child{border-right:none}'
     +'table.rpt tr{border-bottom:.5pt solid #d1dbe8;page-break-inside:avoid}'
-    +'table.rpt tbody tr:nth-child(even){background:#fafbfc;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}'
-    +'table.rpt td{padding:3px 5px;vertical-align:top}'
-    +'.td-loc{font-size:7pt;color:#5a7089;width:110px}'
-    +'.td-mat{font-size:7pt;color:#1a2332;line-height:1.35}'
+    +'table.rpt td{padding:3px 5px;vertical-align:top;color:#1a2332}'
+    +'.td-loc{font-size:7pt;color:#1a2332;width:35%}'
+    +'.td-mat{font-size:7pt;color:#1a2332;line-height:1.35;width:65%}'
     +'.td-rep{font-size:7pt;font-weight:700;color:rgb(13,124,159);font-family:Courier,monospace;width:50px}'
     +'.td-qty{font-size:7pt;text-align:center;width:24px}'
     +'.td-gauge{width:88px}'
@@ -2788,7 +2791,7 @@ function genererRapport(){
     +'.td-lot{width:52px;text-align:center}'
     +'.recup-tag{font-size:6pt;color:#A32D2D;margin-left:4px}'
     +'.rem-txt{white-space:pre-wrap;font-size:7pt}'
-    +'.page-footer{position:fixed;bottom:0;left:0;right:0;display:flex;justify-content:space-between;padding:3px 10px;border-top:1.5px solid rgb(21,164,201);background:#f0f9fc;font-size:7pt;color:rgb(13,124,159);font-weight:600;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}'
+    +'.page-footer{display:flex;justify-content:space-between;padding:3px 0;border-top:1.5px solid rgb(21,164,201);background:#f0f9fc;font-size:7pt;color:rgb(13,124,159);font-weight:600;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;margin-top:8px}'
     +'.synth-page{page-break-before:always}'
     +'.synth-kpi{display:flex;gap:8px;margin:10px 0}'
     +'.kpi-card{flex:1;background:#f0f9fc;border-radius:5px;border:.5px solid #b8e0ec;padding:7px 10px;text-align:center;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}'
@@ -2801,7 +2804,7 @@ function genererRapport(){
     +'.sign-zone{display:flex;gap:12px;margin-top:12px}'
     +'.sign-box{flex:1;border:.5px solid #d1dbe8;border-radius:5px;padding:8px 10px;min-height:50px}'
     +'.sign-lbl{font-size:6.5pt;color:#5a7089;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}'
-    +'@media print{body{padding:8mm 8mm 10mm 8mm}.page-footer{position:fixed;bottom:0}}'
+    +'@media print{body{padding:0}.page-footer{margin-top:8px}}'
     +'</style></head><body>'
     // En-tête page détail
     +'<div class="page-header">'
@@ -2816,8 +2819,8 @@ function genererRapport(){
     // Tableau avec thead répété (Fix 2+3)
     +'<table class="rpt">'
     +'<thead><tr>'
-    +'<th style="width:110px">Local</th>'
-    +'<th>Mat\u00e9riel</th>'
+    +'<th style="width:35%">Local</th>'
+    +'<th style="width:65%">Mat\u00e9riel</th>'
     +'<th style="width:50px">Rep\u00e8re</th>'
     +'<th style="width:24px;text-align:center">Qt\u00e9</th>'
     +'<th style="width:88px">Avancement</th>'
@@ -2826,7 +2829,7 @@ function genererRapport(){
     +'</tr></thead>'
     +'<tbody>'+rows+'</tbody></table>'
     // Pied de page
-    +'<div class="page-footer"><span>&copy; Toutes les cuisines ing\u00e9nierie</span><span id="pf-pg"></span></div>'
+    +'<div class="page-footer"><span>&copy; Toutes les cuisines ing\u00e9nierie</span></div>'
     // PAGE SYNTHÈSE
     +'<div class="synth-page">'
     +'<div class="page-header">'
@@ -2882,13 +2885,14 @@ function genererRapport(){
     +'<div class="sign-box"><div class="sign-lbl">Visa entreprise</div></div>'
     +'</div>'
     +'</div></div>'
-    +'<script>document.getElementById(\"pf-pg\").textContent=\"Page 1 / \"+(document.querySelectorAll(\".synth-page\").length+1);<\/script>'
-    +'</body></html>';
+    +'<\/body><\/html>';
 
   var win = window.open('','_blank','width=1100,height=800');
   win.document.write(html);
   win.document.close();
-  setTimeout(function(){ win.print(); }, 600);
+  // Attendre le chargement complet avant d'imprimer
+  // La numérotation est gérée par Edge/Chrome nativement via @page
+  setTimeout(function(){ win.print(); }, 800);
 }
 
 function rapportToutCocher(state){
