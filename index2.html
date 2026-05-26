@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0046)file:///C:/Users/conta/Downloads/index2_5.html -->
+<!-- saved from url=(0046)file:///C:/Users/conta/Downloads/index2_6.html -->
 <html lang="fr"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -693,7 +693,7 @@ input[type=number]{-moz-appearance:textfield}
 </div>
 
 <div id="photoViewPopup">
-  <img id="photoViewImg" src="file:///C:/Users/conta/Downloads/index2_5.html" alt="">
+  <img id="photoViewImg" src="file:///C:/Users/conta/Downloads/index2_6.html" alt="">
   <div class="pv-bar">
     <button class="pv-btn" onclick="deleteViewPhoto()">🗑 Supprimer</button>
     <button class="pv-btn" onclick="downloadViewPhoto()">⬇ Télécharger</button>
@@ -708,36 +708,35 @@ input[type=number]{-moz-appearance:textfield}
 <script>
 
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-
-const CLIENT_ID = '571693908469-5at2rvfit4g32e2m4ah6510b72vmt77o.apps.googleusercontent.com';
-const COL = {local:0,materiel:1,repere:2,nbre:3,recup:4,larg:5,prof:6,haut:7,lot:43,livre:78,installe:79,mes:80,remarque:81,marque:130,refmat:131};
-const DEFAULT_FREQ = ['D\u00e9filmer mat\u00e9riel','Pose accessoires','Housses \u00e0 fournir','Dotation bacs \u00e0 fournir','Stock\u00e9 dans r\u00e9serve','Stock\u00e9 dans chambre froide'];
-const W = window;
+// pdfjsLib initialisé après chargement du script externe
+var CLIENT_ID = '571693908469-5at2rvfit4g32e2m4ah6510b72vmt77o.apps.googleusercontent.com';
+var COL = {local:0,materiel:1,repere:2,nbre:3,recup:4,larg:5,prof:6,haut:7,lot:43,livre:78,installe:79,mes:80,remarque:81,marque:130,refmat:131};
+var DEFAULT_FREQ = ['D\u00e9filmer mat\u00e9riel','Pose accessoires','Housses \u00e0 fournir','Dotation bacs \u00e0 fournir','Stock\u00e9 dans r\u00e9serve','Stock\u00e9 dans chambre froide'];
+var W = window;
 
 // ─── ÉTAT ──────────────────────────────────────────────────────────────────
-let wb=null, wsData=[], lots=[], fileName='';
-let projectMOA='', projectOpe='', lotsInfo={};
+var wb=null, wsData=[], lots=[], fileName='';
+var projectMOA='', projectOpe='', lotsInfo={};
 var filtreVuActif = false;
 var rapportTitre = '';
 var filtreLocauxActif = false;
-let pdfDocs={}, pdfDataStore={};
-let activePdf=null, curPage=1, totPages=0, zoom=1.0;
-let selLocal='';
-let driveToken=null, gisReady=false, tokenClient=null;
-let driveXlsFiles=[], drivePdfFiles=[], folderIds={};
-let remCardId=null, sessionRems=[];
-let curTool='hand', curColor='#c0392b', sw=3;
-let drawing=false, strokes=[], annotSnaps={}, sx=0, sy=0;
-let isPanning=false, panStartX=0, panStartY=0, panScrollX=0, panScrollY=0;
-let notePages=[], noteCurPage=0, noteTool='pen', noteColor='#1a2332', noteSw=3, noteZoomLevel=1;
-let noteDrawing=false, noteStrokes=[];
-let noteSx=0, noteSy=0;
-let db=null;
-let photoCardId=null;
-let phTool='pen', phColor='#c0392b', phSw=4;
-let phDrawing=false, phSx=0, phSy=0;
-let viewPhotoId=null;
+var pdfDocs={}, pdfDataStore={};
+var activePdf=null, curPage=1, totPages=0, zoom=1.0;
+var selLocal='';
+var driveToken=null, gisReady=false, tokenClient=null;
+var driveXlsFiles=[], drivePdfFiles=[], folderIds={};
+var remCardId=null, sessionRems=[];
+var curTool='hand', curColor='#c0392b', sw=3;
+var drawing=false, strokes=[], annotSnaps={}, sx=0, sy=0;
+var isPanning=false, panStartX=0, panStartY=0, panScrollX=0, panScrollY=0;
+var notePages=[], noteCurPage=0, noteTool='pen', noteColor='#1a2332', noteSw=3, noteZoomLevel=1;
+var noteDrawing=false, noteStrokes=[];
+var noteSx=0, noteSy=0;
+var db=null;
+var photoCardId=null;
+var phTool='pen', phColor='#c0392b', phSw=4;
+var phDrawing=false, phSx=0, phSy=0;
+var viewPhotoId=null;
 
 // ─── INDEXEDDB ─────────────────────────────────────────────────────────────
 function initDB(){
@@ -3156,6 +3155,10 @@ function getStatutGauge(r){
 </div>
 <script>
 window.addEventListener('load',async function(){
+  // Initialiser pdfjsLib après chargement complet des scripts externes
+  if(typeof pdfjsLib !== 'undefined'){
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
   try{ await initDB(); }catch(e){ console.warn('IndexedDB non disponible',e); }
   loadLocal();
   await loadNotePages();
