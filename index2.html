@@ -864,7 +864,7 @@ function loadXLS(inp){
   fileName=f.name;
   var r=new FileReader();
   r.onload=function(e){
-    try{ wb=XLSX.read(e.target.result,{type:'array'}); parseData(); showXLSOk(); saveLocal(); saveWbToIDB(); snack('📊 '+fileName+' charg\u00e9','#1e8a4a'); }
+    try{ wb=XLSX.read(e.target.result,{type:'array',cellStyles:true,bookVBA:true,bookDeps:true,sheetStubs:true,cellDates:true}); parseData(); showXLSOk(); saveLocal(); saveWbToIDB(); snack('📊 '+fileName+' charg\u00e9','#1e8a4a'); }
     catch(err){ alert('Erreur : '+err.message); }
   };
   r.readAsArrayBuffer(f);
@@ -2028,7 +2028,26 @@ function syncRow(row){
   if(!wb||row._row<0) return; var ws=wb.Sheets['Mater']; if(!ws) return;
   var r=row._row; setCell(ws,COL.livre,r,row.livre?'X':''); setCell(ws,COL.installe,r,row.installe?'X':''); setCell(ws,COL.mes,r,row.mes?'X':''); setCell(ws,COL.remarque,r,row.remarque||'');
 }
-function setCell(ws,col,row,val){ var addr=XLSX.utils.encode_cell({r:row,c:col}); if(!val){delete ws[addr];return;} ws[addr]={v:val,t:'s'}; }
+function setCell(ws,col,row,val){
+  var addr=XLSX.utils.encode_cell({r:row,c:col});
+  if(!val||val===''){
+    // Garder la cellule avec valeur vide plutôt que de la supprimer (évite les trous XML)
+    ws[addr]={v:'',t:'s'};
+    return;
+  }
+  ws[addr]={v:val,t:'s'};
+}
+function fixWsRef(ws){
+  // Recalcule !ref à partir des cellules réellement présentes
+  var cells=Object.keys(ws).filter(function(k){return k[0]!=='!'});
+  if(!cells.length) return;
+  var dec=cells.map(function(k){return XLSX.utils.decode_cell(k);});
+  var minR=Math.min.apply(null,dec.map(function(d){return d.r;}));
+  var maxR=Math.max.apply(null,dec.map(function(d){return d.r;}));
+  var minC=Math.min.apply(null,dec.map(function(d){return d.c;}));
+  var maxC=Math.max.apply(null,dec.map(function(d){return d.c;}));
+  ws['!ref']=XLSX.utils.encode_range({s:{r:minR,c:minC},e:{r:maxR,c:maxC}});
+}
 
 function getWb(){
   return new Promise(function(resolve,reject){
@@ -2054,7 +2073,7 @@ function doGetWb(resolve, reject){
         reject('Le fichier Excel n\'est pas encore en cache.\nVeuillez l\'importer une fois depuis Drive ou localement\npuis l\'export fonctionnera automatiquement.');
         return;
       }
-      try{ wb=XLSX.read(rows[0].data,{type:'array'}); if(!fileName) fileName=rows[0].fileName||'export.xlsx'; resolve(wb); }
+      try{ wb=XLSX.read(rows[0].data,{type:'array',cellStyles:true,bookVBA:true,bookDeps:true,sheetStubs:true,cellDates:true}); if(!fileName) fileName=rows[0].fileName||'export.xlsx'; resolve(wb); }
       catch(e){ reject('Erreur lecture fichier: '+e.message); }
     }).catch(function(e){ reject('Erreur IDB: '+e); });
 }
@@ -2069,8 +2088,8 @@ function exportXLSX(){
       if(row.mes)sc(COL.mes,'X');if(row.remarque)sc(COL.remarque,row.remarque);
       range.e.r=nextRow; nextRow++;
     });
-    ws['!ref']=XLSX.utils.encode_range(range);
-    XLSX.writeFile(workbook,fileName.replace(/\.(xls|xlsx)$/i,'')+'_pointage.xlsx');
+    fixWsRef(ws);
+    XLSX.writeFile(workbook,fileName.replace(/\.(xls|xlsx)$/i,'')+'_pointage.xlsx',{bookType:'xlsx',cellStyles:true,compression:true});
     snack('✅ Fichier exporté !');
   }).catch(function(e){ alert(e); });
 }
@@ -2176,9 +2195,9 @@ function exportToDrive(){
       if(row.mes)sc(COL.mes,'X');if(row.remarque)sc(COL.remarque,row.remarque);
       range.e.r=nextRow; nextRow++;
     });
-    ws['!ref']=XLSX.utils.encode_range(range);
+    fixWsRef(ws);
     var exportName=fileName.replace(/\.(xls|xlsx)$/i,'')+'_pointage.xlsx';
-    var wbout=XLSX.write(workbook,{bookType:'xlsx',type:'array'});
+    var wbout=XLSX.write(workbook,{bookType:'xlsx',type:'array',cellStyles:true,compression:true});
     var blob=new Blob([wbout],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
     snack('⏳ Export vers Drive…');
     listDriveFiles(folderIds.xls,['.xlsx']).then(function(existing){
@@ -2286,7 +2305,7 @@ async function importSelectedXLS(){
   try{
     var r=await fetch('https://www.googleapis.com/drive/v3/files/'+file.id+'?alt=media',{headers:{Authorization:'Bearer '+driveToken}});
     if(!r.ok) throw new Error('HTTP '+r.status);
-    var buf=await r.arrayBuffer(); fileName=file.name; wb=XLSX.read(new Uint8Array(buf),{type:'array'});
+    var buf=await r.arrayBuffer(); fileName=file.name; wb=XLSX.read(new Uint8Array(buf),{type:'array',cellStyles:true,bookVBA:true,bookDeps:true,sheetStubs:true,cellDates:true});
     parseData(); showXLSOk(); saveLocal(); saveWbToIDB(); snack('📊 '+file.name+' import\u00e9','#1e8a4a');
   }catch(e){alert('Erreur : '+e.message);}
 }
@@ -2308,7 +2327,7 @@ async function importSelectedPDFs(){
 
 function saveLocal(){
   try{ localStorage.setItem('tlci_data',JSON.stringify(wsData)); localStorage.setItem('tlci_lots',JSON.stringify(lots)); localStorage.setItem('tlci_fileName',fileName); }catch(e){}
-  if(db&&wb){ try{ var wbout=XLSX.write(wb,{bookType:'xlsx',type:'array'}); dbPut('xlsfile',{id:'current',data:new Uint8Array(wbout),fileName:fileName,savedAt:Date.now()}).catch(function(){}); }catch(e){} }
+  if(db&&wb){ try{ var wbout=XLSX.write(wb,{bookType:'xlsx',type:'array',cellStyles:true,compression:true}); dbPut('xlsfile',{id:'current',data:new Uint8Array(wbout),fileName:fileName,savedAt:Date.now()}).catch(function(){}); }catch(e){} }
 }
 /* Upload photo vers Drive/Pointage/Photos/ */
 async function uploadPhotoToDrive(photoRecord){
@@ -2360,7 +2379,7 @@ async function uploadAnnotatedPdfToDrive(){
 function saveWbToIDB(){
   if(!db||!wb) return;
   try{
-    var wbout=XLSX.write(wb,{bookType:'xlsx',type:'array'});
+    var wbout=XLSX.write(wb,{bookType:'xlsx',type:'array',cellStyles:true,compression:true});
     dbPut('xlsfile',{id:'current',data:new Uint8Array(wbout),fileName:fileName,savedAt:Date.now()})
       .then(function(){ console.log('XLS sauvegardé en IDB'); })
       .catch(function(e){ console.warn('saveWbToIDB err:',e); });
@@ -2377,7 +2396,7 @@ function loadLocal(){
   try{
     var d=localStorage.getItem('tlci_data');
     if(d){ wsData=JSON.parse(d); lots=JSON.parse(localStorage.getItem('tlci_lots')||'[]'); fileName=localStorage.getItem('tlci_fileName')||''; populateFilters(); renderLocalList(); showXLSOk(); setTimeout(updateVuBar,300);
-      if(db){ dbGetAll('xlsfile').then(function(rows){ if(rows&&rows.length){ try{ wb=XLSX.read(rows[0].data,{type:'array'}); }catch(e){} } }).catch(function(){}); }
+      if(db){ dbGetAll('xlsfile').then(function(rows){ if(rows&&rows.length){ try{ wb=XLSX.read(rows[0].data,{type:'array',cellStyles:true,bookVBA:true,bookDeps:true,sheetStubs:true,cellDates:true}); }catch(e){} } }).catch(function(){}); }
     }
     if(db){
       dbGetAll('pdfs').then(function(rows){
