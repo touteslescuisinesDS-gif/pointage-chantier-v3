@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<!-- saved from url=(0046)file:///C:/Users/conta/Downloads/index2_7.html -->
-<html lang="fr"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -33,7 +33,7 @@ loadScriptSync([
   'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
   'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js'
 ], 'pdfjsLib');
-</script><script src="./index2_files/xlsx.full.min.js.télécharger"></script><script src="./index2_files/pdf.min.js.télécharger"></script>
+</script>
 <style>
 
 :root{
@@ -265,12 +265,20 @@ input[type=range]{width:60px;accent-color:var(--blue);flex-shrink:0}
 .note-page-nav button:hover{border-color:var(--blue);color:var(--blue)}
 #photoView{height:100%;display:flex;flex-direction:column}
 .photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;padding:20px}
-.photo-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;box-shadow:var(--shadow);cursor:pointer;transition:all .15s}
+.photo-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;box-shadow:var(--shadow);cursor:pointer;transition:all .15s;position:relative}
 .photo-card:hover{box-shadow:var(--shadow2);border-color:var(--blue)}
 .photo-card img{width:100%;height:130px;object-fit:cover;display:block}
 .photo-card .pc-info{padding:8px 10px}
 .photo-card .pc-rep{font-size:11px;font-weight:700;color:var(--blue);font-family:monospace}
 .photo-card .pc-name{font-size:10px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* Mode sélection */
+.photo-card .pc-cb{position:absolute;top:7px;left:7px;width:20px;height:20px;accent-color:var(--blue);cursor:pointer;display:none;z-index:2}
+.photo-sel-mode .photo-card .pc-cb{display:block}
+.photo-card.selected{border-color:var(--blue);box-shadow:0 0 0 2px var(--blue)}
+.photo-card.selected img{opacity:.82}
+/* Barre sélection */
+#photoSelBar{display:none;align-items:center;gap:10px;padding:9px 16px;background:var(--surf);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap}
+#photoSelBar.visible{display:flex}
 .photo-empty{text-align:center;padding:60px 20px;color:var(--muted)}
 .photo-empty .pe-ico{font-size:52px;margin-bottom:14px}
 #photoPopup{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:700;display:none;flex-direction:column}
@@ -406,7 +414,7 @@ input[type=number]{-moz-appearance:textfield}
 .mrem-ok{padding:8px 18px;border:none;border-radius:var(--r);background:var(--ok);color:#fff;font-size:13px;font-weight:700;cursor:pointer}
 .mrem-cancel{padding:8px 14px;border:1px solid var(--border);border-radius:var(--r);background:var(--surf);color:var(--muted);font-size:13px;cursor:pointer}
 </style>
-<script src="./index2_files/client" async=""></script><style id="googleidentityservice_button_styles">.qJTHM{-moz-user-select:none;-webkit-user-select:none;-ms-user-select:none;color:#202124;direction:ltr;-webkit-touch-callout:none;font-family:Roboto-Regular,arial,sans-serif;-webkit-font-smoothing:antialiased;font-weight:400;margin:0;overflow:hidden;-webkit-text-size-adjust:100%}.ynRLnc{left:-9999px;position:absolute;top:-9999px}.L6cTce{display:none}.bltWBb{overflow-wrap:break-word;word-break:break-word}.hSRGPd{color:#1a73e8;cursor:pointer;font-weight:500;text-decoration:none}.Bz112c-W3lGp{height:16px;width:16px}.Bz112c-E3DyYd{height:20px;width:20px}.Bz112c-r9oPif{height:24px;width:24px}.Bz112c-u2z5K{height:36px;width:36px}.Bz112c-uaxL4e{border-radius:10px}.LgbsSe-Bz112c{display:block}.S9gUrf-YoZ4jf{border:none;margin:0;padding:0}.S9gUrf-YoZ4jf *{border:none;margin:0;padding:0}.fFW7wc-ibnC6b>.aZ2wEe>div{border-color:#4285f4}.P1ekSe-ZMv3u{-webkit-transition:height .2s linear;transition:height .2s linear}.P1ekSe-ZMv3u>div:first-child{background-color:#1a73e8!important;-webkit-transition:width .3s linear;transition:width .3s linear}.P1ekSe-ZMv3u>div:nth-child(2){background-image:-webkit-gradient(linear,left top,right top,from(rgba(255,255,255,.7)),to(rgba(255,255,255,.7))),-webkit-gradient(linear,left top,right top,from(#1a73e8),to(#1a73e8))!important;background-image:-webkit-linear-gradient(left,rgba(255,255,255,.7),rgba(255,255,255,.7)),-webkit-linear-gradient(left,#1a73e8,#1a73e8)!important;background-image:linear-gradient(90deg,rgba(255,255,255,.7),rgba(255,255,255,.7)),linear-gradient(90deg,#1a73e8,#1a73e8)!important}.P1ekSe-ZMv3u>div:nth-child(3){background-image:-webkit-gradient(linear,left top,right top,from(rgba(255,255,255,.7)),to(rgba(255,255,255,.7))),-webkit-gradient(linear,left top,right top,from(#1a73e8),to(#1a73e8))!important;background-image:-webkit-linear-gradient(left,rgba(255,255,255,.7),rgba(255,255,255,.7)),-webkit-linear-gradient(left,#1a73e8,#1a73e8)!important;background-image:linear-gradient(90deg,rgba(255,255,255,.7),rgba(255,255,255,.7)),linear-gradient(90deg,#1a73e8,#1a73e8)!important}.haAclf{display:inline-block}.nsm7Bb-HzV7m-LgbsSe{border-radius:4px;box-sizing:border-box;-webkit-transition:background-color .218s,border-color .218s;transition:background-color .218s,border-color .218s;-moz-user-select:none;-webkit-user-select:none;-ms-user-select:none;-webkit-appearance:none;background-color:#fff;background-image:none;border:1px solid #dadce0;color:#3c4043;cursor:pointer;font-family:Google Sans,arial,sans-serif;font-size:14px;height:40px;letter-spacing:.25px;outline:none;overflow:hidden;padding:0 12px;position:relative;text-align:center;vertical-align:middle;white-space:nowrap;width:auto}@media screen and (-ms-high-contrast:active){.nsm7Bb-HzV7m-LgbsSe{border:2px solid windowText;color:windowText}}@media screen and (preferes-contrast:more){.nsm7Bb-HzV7m-LgbsSe{color:#000}}.nsm7Bb-HzV7m-LgbsSe.pSzOP-SxQuSe{font-size:14px;height:32px;letter-spacing:.25px;padding:0 10px}.nsm7Bb-HzV7m-LgbsSe.purZT-SxQuSe{font-size:11px;height:20px;letter-spacing:.3px;padding:0 8px}.nsm7Bb-HzV7m-LgbsSe.Bz112c-LgbsSe{padding:0;width:40px}.nsm7Bb-HzV7m-LgbsSe.Bz112c-LgbsSe.pSzOP-SxQuSe{width:32px}.nsm7Bb-HzV7m-LgbsSe.Bz112c-LgbsSe.purZT-SxQuSe{width:20px}.nsm7Bb-HzV7m-LgbsSe.JGcpL-RbRzK{border-radius:20px}.nsm7Bb-HzV7m-LgbsSe.JGcpL-RbRzK.pSzOP-SxQuSe{border-radius:16px}.nsm7Bb-HzV7m-LgbsSe.JGcpL-RbRzK.purZT-SxQuSe{border-radius:10px}.nsm7Bb-HzV7m-LgbsSe.MFS4be-Ia7Qfc{border:none;color:#fff}.nsm7Bb-HzV7m-LgbsSe.MFS4be-v3pZbf-Ia7Qfc{background-color:#1a73e8}.nsm7Bb-HzV7m-LgbsSe.MFS4be-JaPV2b-Ia7Qfc{background-color:#202124;color:#e8eaed}@media screen and (prefers-contrast:more){.nsm7Bb-HzV7m-LgbsSe.MFS4be-JaPV2b-Ia7Qfc{color:#fff}}.nsm7Bb-HzV7m-LgbsSe .nsm7Bb-HzV7m-LgbsSe-Bz112c{height:18px;margin-right:8px;min-width:18px;width:18px}.nsm7Bb-HzV7m-LgbsSe.pSzOP-SxQuSe .nsm7Bb-HzV7m-LgbsSe-Bz112c{height:14px;min-width:14px;width:14px}.nsm7Bb-HzV7m-LgbsSe.purZT-SxQuSe .nsm7Bb-HzV7m-LgbsSe-Bz112c{height:10px;min-width:10px;width:10px}.nsm7Bb-HzV7m-LgbsSe.jVeSEe .nsm7Bb-HzV7m-LgbsSe-Bz112c{margin-left:8px;margin-right:-4px}.nsm7Bb-HzV7m-LgbsSe.Bz112c-LgbsSe .nsm7Bb-HzV7m-LgbsSe-Bz112c{margin:0;padding:10px}.nsm7Bb-HzV7m-LgbsSe.Bz112c-LgbsSe.pSzOP-SxQuSe .nsm7Bb-HzV7m-LgbsSe-Bz112c{padding:8px}.nsm7Bb-HzV7m-LgbsSe.Bz112c-LgbsSe.purZT-SxQuSe .nsm7Bb-HzV7m-LgbsSe-Bz112c{padding:4px}.nsm7Bb-HzV7m-LgbsSe .nsm7Bb-HzV7m-LgbsSe-Bz112c-haAclf{border-top-left-radius:3px;border-bottom-left-radius:3px;display:-webkit-box;display:-webkit-flex;display:flex;-webkit-box-pack:center;-webkit-justify-content:center;justify-content:center;-webkit-box-align:center;-webkit-align-items:center;align-items:center;background-color:#fff;height:36px;margin-left:-10px;margin-right:12px;min-width:36px;width:36px}.nsm7Bb-HzV7m-LgbsSe .nsm7Bb-HzV7m-LgbsSe-Bz112c-haAclf .nsm7Bb-HzV7m-LgbsSe-Bz112c,.nsm7Bb-HzV7m-LgbsSe.Bz112c-LgbsSe .nsm7Bb-HzV7m-LgbsSe-Bz112c-haAclf .nsm7Bb-HzV7m-LgbsSe-Bz112c{margin:0;padding:0}.nsm7Bb-HzV7m-LgbsSe.pSzOP-SxQuSe .nsm7Bb-HzV7m-LgbsSe-Bz112c-haAclf{height:28px;margin-left:-8px;margin-right:10px;min-width:28px;width:28px}.nsm7Bb-HzV7m-LgbsSe.purZT-SxQuSe .nsm7Bb-HzV7m-LgbsSe-Bz112c-haAclf{height:16px;margin-left:-6px;margin-right:8px;min-width:16px;width:16px}.nsm7Bb-HzV7m-LgbsSe.Bz112c-LgbsSe .nsm7Bb-HzV7m-LgbsSe-Bz112c-haAclf{border-radius:3px;margin-left:2px;margin-right:0;padding:0}.nsm7Bb-HzV7m-LgbsSe.JGcpL-RbRzK .nsm7Bb-HzV7m-LgbsSe-Bz112c-haAclf{border-radius:18px}.nsm7Bb-HzV7m-LgbsSe.pSzOP-SxQuSe.JGcpL-RbRzK .nsm7Bb-HzV7m-LgbsSe-Bz112c-haAclf{border-radius:14px}.nsm7Bb-HzV7m-LgbsSe.purZT-SxQuSe.JGcpL-RbRzK .nsm7Bb-HzV7m-LgbsSe-Bz112c-haAclf{border-radius:8px}.nsm7Bb-HzV7m-LgbsSe .nsm7Bb-HzV7m-LgbsSe-bN97Pc-sM5MNb{display:-webkit-box;display:-webkit-flex;display:flex;-webkit-align-items:center;-webkit-box-align:center;align-items:center;-webkit-flex-direction:row;-webkit-box-orient:horizontal;-webkit-box-direction:normal;flex-direction:row;-webkit-box-pack:justify;-webkit-justify-content:space-between;justify-content:space-between;-webkit-flex-wrap:nowrap;flex-wrap:nowrap;height:100%;position:relative;width:100%}.nsm7Bb-HzV7m-LgbsSe .oXtfBe-l4eHX{-webkit-box-pack:center;-webkit-justify-content:center;justify-content:center}.nsm7Bb-HzV7m-LgbsSe .nsm7Bb-HzV7m-LgbsSe-BPrWId{-webkit-flex-grow:1;-webkit-box-flex:1;flex-grow:1;font-family:Google Sans,arial,sans-serif;font-weight:500;overflow:hidden;text-overflow:ellipsis;vertical-align:top}.nsm7Bb-HzV7m-LgbsSe.purZT-SxQuSe .nsm7Bb-HzV7m-LgbsSe-BPrWId{font-weight:300}.nsm7Bb-HzV7m-LgbsSe .oXtfBe-l4eHX .nsm7Bb-HzV7m-LgbsSe-BPrWId{-webkit-flex-grow:0;-webkit-box-flex:0;flex-grow:0}.nsm7Bb-HzV7m-LgbsSe .nsm7Bb-HzV7m-LgbsSe-MJoBVe{-webkit-transition:background-color .218s;transition:background-color .218s;bottom:0;left:0;position:absolute;right:0;top:0}.nsm7Bb-HzV7m-LgbsSe:focus,.nsm7Bb-HzV7m-LgbsSe:hover{box-shadow:none;border-color:rgb(210,227,252);outline:none}.nsm7Bb-HzV7m-LgbsSe:focus-within{outline:2px solid #00639b;border-color:transparent}.nsm7Bb-HzV7m-LgbsSe:hover .nsm7Bb-HzV7m-LgbsSe-MJoBVe{background:rgba(66,133,244,.08)}.nsm7Bb-HzV7m-LgbsSe:active .nsm7Bb-HzV7m-LgbsSe-MJoBVe,.nsm7Bb-HzV7m-LgbsSe:focus .nsm7Bb-HzV7m-LgbsSe-MJoBVe{background:rgba(66,133,244,.1)}.nsm7Bb-HzV7m-LgbsSe.MFS4be-Ia7Qfc:hover .nsm7Bb-HzV7m-LgbsSe-MJoBVe{background:rgba(255,255,255,.24)}.nsm7Bb-HzV7m-LgbsSe.MFS4be-Ia7Qfc:active .nsm7Bb-HzV7m-LgbsSe-MJoBVe,.nsm7Bb-HzV7m-LgbsSe.MFS4be-Ia7Qfc:focus .nsm7Bb-HzV7m-LgbsSe-MJoBVe{background:rgba(255,255,255,.32)}.nsm7Bb-HzV7m-LgbsSe .n1UuX-DkfjY{border-radius:50%;display:-webkit-box;display:-webkit-flex;display:flex;height:20px;margin-left:-4px;margin-right:8px;min-width:20px;width:20px}.nsm7Bb-HzV7m-LgbsSe.jVeSEe .nsm7Bb-HzV7m-LgbsSe-BPrWId{font-family:Roboto;font-size:12px;text-align:left}.nsm7Bb-HzV7m-LgbsSe.jVeSEe .nsm7Bb-HzV7m-LgbsSe-BPrWId .K4efff .fmcmS,.nsm7Bb-HzV7m-LgbsSe.jVeSEe .nsm7Bb-HzV7m-LgbsSe-BPrWId .ssJRIf{overflow:hidden;text-overflow:ellipsis}.nsm7Bb-HzV7m-LgbsSe.jVeSEe .nsm7Bb-HzV7m-LgbsSe-BPrWId .K4efff{display:-webkit-box;display:-webkit-flex;display:flex;-webkit-align-items:center;-webkit-box-align:center;align-items:center;color:#5f6368;fill:#5f6368;font-size:11px;font-weight:400}.nsm7Bb-HzV7m-LgbsSe.jVeSEe.MFS4be-Ia7Qfc .nsm7Bb-HzV7m-LgbsSe-BPrWId .K4efff{color:#e8eaed;fill:#e8eaed}@media screen and (prefers-contrast:more){.nsm7Bb-HzV7m-LgbsSe.jVeSEe .nsm7Bb-HzV7m-LgbsSe-BPrWId .K4efff,.nsm7Bb-HzV7m-LgbsSe.jVeSEe.MFS4be-Ia7Qfc .nsm7Bb-HzV7m-LgbsSe-BPrWId .K4efff{color:#000;fill:#000}}.nsm7Bb-HzV7m-LgbsSe.jVeSEe .nsm7Bb-HzV7m-LgbsSe-BPrWId .K4efff .Bz112c{height:18px;margin:-3px -3px -3px 2px;min-width:18px;width:18px}.nsm7Bb-HzV7m-LgbsSe.jVeSEe .nsm7Bb-HzV7m-LgbsSe-Bz112c-haAclf{border-top-left-radius:0;border-bottom-left-radius:0;border-top-right-radius:3px;border-bottom-right-radius:3px;margin-left:12px;margin-right:-10px}.nsm7Bb-HzV7m-LgbsSe.jVeSEe.JGcpL-RbRzK .nsm7Bb-HzV7m-LgbsSe-Bz112c-haAclf{border-radius:18px}.L5Fo6c-sM5MNb{border:0;display:block;left:0;position:relative;top:0}.L5Fo6c-bF1uUb{border-radius:4px;bottom:0;cursor:pointer;left:0;position:absolute;right:0;top:0}.L5Fo6c-bF1uUb:focus{border:none;outline:none}sentinel{}</style></head>
+</head>
 <body>
 
 <div id="appHdr">
@@ -415,12 +423,12 @@ input[type=number]{-moz-appearance:textfield}
 </div>
 <div id="tabBar">
   <div id="tabBarMain">
-    <button class="tab active" data-tab="fichiers" onclick="showTab(&#39;fichiers&#39;)">📋 Projet</button>
-    <button class="tab" data-tab="pointage" onclick="showTab(&#39;pointage&#39;)">🖼 Pointage</button>
-    <button class="tab" data-tab="notes" onclick="showTab(&#39;notes&#39;)">📝 Bloc-notes</button>
-    <button class="tab" data-tab="photos" onclick="showTab(&#39;photos&#39;)">📷 Photos</button>
-    <button class="tab" data-tab="avancement" onclick="showTab(&#39;avancement&#39;)">📊 Avancement</button>
-    <button class="tab" data-tab="masse" onclick="showTab(&#39;masse&#39;)">⚡ Masse</button>
+    <button class="tab active" data-tab="fichiers" onclick="showTab('fichiers')">📋 Projet</button>
+    <button class="tab" data-tab="pointage" onclick="showTab('pointage')">🖼 Pointage</button>
+    <button class="tab" data-tab="notes" onclick="showTab('notes')">📝 Bloc-notes</button>
+    <button class="tab" data-tab="photos" onclick="showTab('photos')">📷 Photos</button>
+    <button class="tab" data-tab="avancement" onclick="showTab('avancement')">📊 Avancement</button>
+    <button class="tab" data-tab="masse" onclick="showTab('masse')">⚡ Masse</button>
   </div>
   <div id="tabBarPdf"></div>
 </div>
@@ -446,24 +454,24 @@ input[type=number]{-moz-appearance:textfield}
           <div class="card-ttl">☁️ Google Drive</div>
           <div id="driveDisc">
             <p style="color:var(--muted);font-size:13px;line-height:1.7;margin-bottom:14px">Connectez-vous pour importer/exporter depuis votre dossier <strong>Pointage/</strong> sur Google Drive.</p>
-            <button class="btn-drive" onclick="driveLogin()" style="width:100%;justify-content:center;padding:11px"><img src="./index2_files/favicon.ico" style="width:16px;height:16px"> Se connecter avec Google</button>
+            <button class="btn-drive" onclick="driveLogin()" style="width:100%;justify-content:center;padding:11px"><img src="https://www.google.com/favicon.ico" style="width:16px;height:16px"> Se connecter avec Google</button>
           </div>
           <div id="driveConn" style="display:none">
             <div class="drive-bar"><div class="db-dot"></div><div style="flex:1"><div class="db-name" id="driveName">—</div><div class="db-email" id="driveEmail">—</div></div><button class="btn-drive danger" onclick="driveLogout()">Déconnecter</button></div>
-            <div class="dsec"><div class="dsec-ttl">📊 Pointage / Materiels</div><div id="driveXlsList" class="dfile-list"><span class="spinner"></span> Chargement…</div><button class="btn-drive" onclick="importSelectedXLS()" id="btnImportXls" disabled="" style="width:100%;justify-content:center">📥 Importer le fichier sélectionné</button></div>
-            <div class="dsec"><div class="dsec-ttl">📄 Pointage / Fichiers (PDF)</div><div id="drivePdfList" class="dfile-list"><span class="spinner"></span> Chargement…</div><button class="btn-drive" onclick="importSelectedPDFs()" id="btnImportPdfs" disabled="" style="width:100%;justify-content:center">📥 Importer les PDF sélectionnés</button></div>
+            <div class="dsec"><div class="dsec-ttl">📊 Pointage / Materiels</div><div id="driveXlsList" class="dfile-list"><span class="spinner"></span> Chargement…</div><button class="btn-drive" onclick="importSelectedXLS()" id="btnImportXls" disabled style="width:100%;justify-content:center">📥 Importer le fichier sélectionné</button></div>
+            <div class="dsec"><div class="dsec-ttl">📄 Pointage / Fichiers (PDF)</div><div id="drivePdfList" class="dfile-list"><span class="spinner"></span> Chargement…</div><button class="btn-drive" onclick="importSelectedPDFs()" id="btnImportPdfs" disabled style="width:100%;justify-content:center">📥 Importer les PDF sélectionnés</button></div>
             <div id="driveExportZone" style="display:none;margin-top:10px"><button class="btn-drive" onclick="exportProjetDrive()" style="width:100%;justify-content:center;padding:11px">☁️ Export projet vers Drive</button></div>
           </div>
         </div>
         <div class="card">
           <div class="card-ttl">📂 Chargement local</div>
           <div id="xlsOk" style="display:none"><div class="fitem"><span class="fi-ico">📊</span><div class="fi-body"><div class="fi-name" id="xlsNm"></div><div class="fi-info" id="xlsInf"></div></div><button class="fi-del" onclick="clearXLS()">✕</button></div></div>
-          <div id="xlsDrop" class="fdrop" onclick="document.getElementById(&#39;xlsIn&#39;).click()"><div class="fdi">📊</div><div class="fdt">Charger le fichier Excel</div><div class="fds">.xls ou .xlsx · Onglet Mater</div></div>
+          <div id="xlsDrop" class="fdrop" onclick="document.getElementById('xlsIn').click()"><div class="fdi">📊</div><div class="fdt">Charger le fichier Excel</div><div class="fds">.xls ou .xlsx · Onglet Mater</div></div>
           <input type="file" id="xlsIn" accept=".xls,.xlsx" style="display:none" onchange="loadXLS(this)">
           <div style="height:12px"></div>
           <div id="pdfFileList"></div>
-          <div class="fdrop" onclick="document.getElementById(&#39;pdfIn&#39;).click()"><div class="fdi">📄</div><div class="fdt">Ajouter des PDF</div><div class="fds">Sélection multiple · Hors-ligne</div></div>
-          <input type="file" id="pdfIn" accept=".pdf" multiple="" style="display:none" onchange="loadPDFs(this)">
+          <div class="fdrop" onclick="document.getElementById('pdfIn').click()"><div class="fdi">📄</div><div class="fdt">Ajouter des PDF</div><div class="fds">Sélection multiple · Hors-ligne</div></div>
+          <input type="file" id="pdfIn" accept=".pdf" multiple style="display:none" onchange="loadPDFs(this)">
         </div>
         <div class="card" id="expCard" style="display:none"><div class="card-ttl">📤 Export local</div><button class="btn btn-ok btn-block" onclick="exportXLSX()">⬇ Télécharger le fichier Excel mis à jour</button></div>
         <div class="card" id="rapportCard" style="display:none">
@@ -510,25 +518,25 @@ input[type=number]{-moz-appearance:textfield}
         <div id="pdfTb">
           <button class="tbtn" onclick="chgPage(-1)">◀</button>
           <div style="display:flex;align-items:center;gap:3px;flex-shrink:0">
-            <input type="number" id="pgInput" min="1" value="1" style="width:42px;padding:3px 5px;font-size:12px;font-weight:700;text-align:center;border:1px solid var(--border);border-radius:6px;background:var(--surf);color:var(--text);outline:none" onchange="goToPage(this.value)" onkeydown="if(event.key===&#39;Enter&#39;)goToPage(this.value)">
+            <input type="number" id="pgInput" min="1" value="1" style="width:42px;padding:3px 5px;font-size:12px;font-weight:700;text-align:center;border:1px solid var(--border);border-radius:6px;background:var(--surf);color:var(--text);outline:none" onchange="goToPage(this.value)" onkeydown="if(event.key==='Enter')goToPage(this.value)">
             <span style="font-size:11px;color:var(--muted);white-space:nowrap" id="pgTotal">/ —</span>
           </div>
           <button class="tbtn" onclick="chgPage(1)">▶</button>
           <div class="tsep"></div>
           <button class="tbtn" onclick="chgZoom(-0.25)">−</button><span class="ni" id="zmInfo">100%</span><button class="tbtn" onclick="chgZoom(0.25)">+</button>
           <div class="tsep"></div>
-          <button class="tbtn" id="t-pen" onclick="setTool(&#39;pen&#39;)" title="Crayon">✏️</button>
-          <button class="tbtn" id="t-hl" onclick="setTool(&#39;hl&#39;)" title="Surligneur">🖊</button>
-          <button class="tbtn" id="t-arrow" onclick="setTool(&#39;arrow&#39;)" title="Flèche">➡️</button>
-          <button class="tbtn" id="t-text" onclick="setTool(&#39;text&#39;)" title="Texte">T</button>
-          <button class="tbtn on" id="t-hand" onclick="setTool(&#39;hand&#39;)" title="Main">✋</button>
-          <button class="tbtn" id="t-erase" onclick="setTool(&#39;erase&#39;)" title="Gomme">⬜</button>
+          <button class="tbtn" id="t-pen" onclick="setTool('pen')" title="Crayon">✏️</button>
+          <button class="tbtn" id="t-hl" onclick="setTool('hl')" title="Surligneur">🖊</button>
+          <button class="tbtn" id="t-arrow" onclick="setTool('arrow')" title="Flèche">➡️</button>
+          <button class="tbtn" id="t-text" onclick="setTool('text')" title="Texte">T</button>
+          <button class="tbtn on" id="t-hand" onclick="setTool('hand')" title="Main">✋</button>
+          <button class="tbtn" id="t-erase" onclick="setTool('erase')" title="Gomme">⬜</button>
           <div class="tsep"></div>
-          <div class="cdot sel" style="background:#c0392b" onclick="setColor(&#39;#c0392b&#39;,this)"></div>
-          <div class="cdot" style="background:#d4820a" onclick="setColor(&#39;#d4820a&#39;,this)"></div>
-          <div class="cdot" style="background:#1e8a4a" onclick="setColor(&#39;#1e8a4a&#39;,this)"></div>
-          <div class="cdot" style="background:#1a7ab5" onclick="setColor(&#39;#1a7ab5&#39;,this)"></div>
-          <div class="cdot" style="background:#1a2332" onclick="setColor(&#39;#1a2332&#39;,this)"></div>
+          <div class="cdot sel" style="background:#c0392b" onclick="setColor('#c0392b',this)"></div>
+          <div class="cdot" style="background:#d4820a" onclick="setColor('#d4820a',this)"></div>
+          <div class="cdot" style="background:#1e8a4a" onclick="setColor('#1e8a4a',this)"></div>
+          <div class="cdot" style="background:#1a7ab5" onclick="setColor('#1a7ab5',this)"></div>
+          <div class="cdot" style="background:#1a2332" onclick="setColor('#1a2332',this)"></div>
           <input type="range" id="szR" min="1" max="20" value="3" oninput="sw=+this.value" title="Épaisseur">
           <div class="tsep"></div>
           <button class="tbtn" onclick="undoA()" title="Annuler">↩</button>
@@ -546,15 +554,15 @@ input[type=number]{-moz-appearance:textfield}
     <div id="tab-notes" style="display:none">
       <div id="noteView">
         <div id="noteTb">
-          <button class="tbtn on" id="nt-pen" onclick="setNoteTool(&#39;pen&#39;)" title="Crayon">✏️</button>
-          <button class="tbtn" id="nt-hl" onclick="setNoteTool(&#39;hl&#39;)" title="Surligneur">🖊</button>
-          <button class="tbtn" id="nt-erase" onclick="setNoteTool(&#39;erase&#39;)" title="Gomme">⬜</button>
-    <button class="tbtn" id="nt-hand" onclick="setNoteTool(&#39;hand&#39;)" title="Déplacer">✋</button>
+          <button class="tbtn on" id="nt-pen" onclick="setNoteTool('pen')" title="Crayon">✏️</button>
+          <button class="tbtn" id="nt-hl" onclick="setNoteTool('hl')" title="Surligneur">🖊</button>
+          <button class="tbtn" id="nt-erase" onclick="setNoteTool('erase')" title="Gomme">⬜</button>
+    <button class="tbtn" id="nt-hand" onclick="setNoteTool('hand')" title="Déplacer">✋</button>
           <div class="tsep"></div>
-          <div class="cdot sel" style="background:#1a2332" onclick="setNoteColor(&#39;#1a2332&#39;,this)"></div>
-          <div class="cdot" style="background:#c0392b" onclick="setNoteColor(&#39;#c0392b&#39;,this)"></div>
-          <div class="cdot" style="background:#1a7ab5" onclick="setNoteColor(&#39;#1a7ab5&#39;,this)"></div>
-          <div class="cdot" style="background:#1e8a4a" onclick="setNoteColor(&#39;#1e8a4a&#39;,this)"></div>
+          <div class="cdot sel" style="background:#1a2332" onclick="setNoteColor('#1a2332',this)"></div>
+          <div class="cdot" style="background:#c0392b" onclick="setNoteColor('#c0392b',this)"></div>
+          <div class="cdot" style="background:#1a7ab5" onclick="setNoteColor('#1a7ab5',this)"></div>
+          <div class="cdot" style="background:#1e8a4a" onclick="setNoteColor('#1e8a4a',this)"></div>
           <input type="range" id="noteSzR" min="1" max="20" value="3" oninput="noteSw=+this.value" title="Épaisseur">
           <div class="tsep"></div>
           <button class="tbtn" onclick="undoNote()" title="Annuler">↩</button>
@@ -578,9 +586,20 @@ input[type=number]{-moz-appearance:textfield}
 
     <div id="tab-photos" style="display:none">
       <div id="photoView">
-        <div style="padding:14px 20px;border-bottom:1px solid var(--border);background:var(--surf);display:flex;align-items:center;gap:10px;box-shadow:var(--shadow);flex-shrink:0">
-          <div style="flex:1;font-size:13px;color:var(--muted)">Photos prises sur le chantier</div>
+        <div style="padding:10px 16px;border-bottom:1px solid var(--border);background:var(--surf);display:flex;align-items:center;gap:8px;box-shadow:var(--shadow);flex-shrink:0;flex-wrap:wrap">
+          <div style="flex:1;font-size:13px;color:var(--muted)" id="photoGalleryCount">Photos prises sur le chantier</div>
+          <button class="btn btn-ghost btn-sm" onclick="togglePhotoSelMode()" id="btnPhotoSelMode">☑ Sélectionner</button>
           <button class="btn btn-ghost btn-sm" onclick="renderPhotoGallery()">↺ Actualiser</button>
+        </div>
+        <div id="photoSelBar">
+          <label style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;cursor:pointer">
+            <input type="checkbox" id="photoCheckAll" onchange="photoCheckAllToggle(this.checked)" style="width:16px;height:16px;accent-color:var(--blue)">
+            Tout sélectionner
+          </label>
+          <span id="photoSelCount" style="font-size:12px;color:var(--muted);flex:1"></span>
+          <button class="btn btn-ghost btn-sm" onclick="photoDownloadSelected()" id="btnPhotoDownloadSel" disabled>⬇ Télécharger</button>
+          <button class="btn btn-sm" style="background:#c0392b;color:#fff;border:none" onclick="photoDeleteSelected()" id="btnPhotoDeleteSel" disabled>🗑 Supprimer</button>
+          <button class="btn btn-ghost btn-sm" onclick="togglePhotoSelMode()">✕ Annuler</button>
         </div>
         <div id="photoGallery" style="flex:1;overflow-y:auto">
           <div class="photo-empty"><div class="pe-ico">📷</div><div>Aucune photo pour l’instant<br><span style="font-size:12px">Utilisez le bouton 📷 Photo sur un matériel</span></div></div>
@@ -647,10 +666,10 @@ input[type=number]{-moz-appearance:textfield}
 <!-- Barre d'action flottante masse -->
 <div id="masseActionBar">
   <span id="masseSelCount">0 sélectionné(s)</span>
-  <button class="mab-btn mab-ok" onclick="masseApply(&#39;livre&#39;)">📦 Livré</button>
-  <button class="mab-btn mab-ok" onclick="masseApply(&#39;installe&#39;)">🔧 Installé</button>
-  <button class="mab-btn mab-ok" onclick="masseApply(&#39;mes&#39;)">⚡ En service</button>
-  <button class="mab-btn" onclick="masseApply(&#39;vu&#39;)">👁 Vu ce jour</button>
+  <button class="mab-btn mab-ok" onclick="masseApply('livre')">📦 Livré</button>
+  <button class="mab-btn mab-ok" onclick="masseApply('installe')">🔧 Installé</button>
+  <button class="mab-btn mab-ok" onclick="masseApply('mes')">⚡ En service</button>
+  <button class="mab-btn" onclick="masseApply('vu')">👁 Vu ce jour</button>
   <button class="mab-btn mab-rem" onclick="masseOpenRem()">💬 Remarque…</button>
 </div>
 
@@ -678,7 +697,7 @@ input[type=number]{-moz-appearance:textfield}
         <button class="rab" onclick="remFrequente()"><span class="rab-ico">📋</span><div><div class="rab-txt">Remarque fréquente</div><div class="rab-sub">Liste prédéfinie et remarques de session</div></div></button>
       </div>
       <div id="remEditZone" style="display:none;margin-top:10px"><textarea id="remEditText" rows="5" style="width:100%;box-sizing:border-box;padding:10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;resize:vertical;color:var(--text)"></textarea><div style="display:flex;gap:8px;margin-top:8px"><button class="btn btn-ok btn-sm" onclick="remEditerValider()" style="flex:1">✅ Enregistrer</button><button class="btn btn-ghost btn-sm" onclick="remEditerAnnuler()">✕ Annuler</button></div></div>
-      <div class="rem-new-input" id="remNewInput"><textarea id="remNewText" placeholder="Saisir votre remarque…" style="margin-top:10px"></textarea><div style="display:flex;gap:8px;margin-top:8px"><button class="btn btn-ok btn-sm" onclick="remValiderNouvelle()">✓ Ajouter</button><button class="btn btn-ghost btn-sm" onclick="document.getElementById(&#39;remNewInput&#39;).style.display=&#39;none&#39;">Annuler</button></div></div>
+      <div class="rem-new-input" id="remNewInput"><textarea id="remNewText" placeholder="Saisir votre remarque…" style="margin-top:10px"></textarea><div style="display:flex;gap:8px;margin-top:8px"><button class="btn btn-ok btn-sm" onclick="remValiderNouvelle()">✓ Ajouter</button><button class="btn btn-ghost btn-sm" onclick="document.getElementById('remNewInput').style.display='none'">Annuler</button></div></div>
       <div class="rem-freq" id="remFreqZone"><div id="freqItems" style="margin-top:10px"></div><div class="freq-add"><input type="text" id="freqNewText" placeholder="Nouvelle remarque fréquente…"><button class="btn btn-blue btn-sm" onclick="freqAjouter()">+ Ajouter</button></div></div>
     </div>
     <div class="rem-footer"><button class="btn btn-ghost btn-sm" onclick="closeRemPopup()">Fermer</button></div>
@@ -692,21 +711,21 @@ input[type=number]{-moz-appearance:textfield}
       <button class="btn-sec" onclick="stopCameraStream()">✕ Annuler</button>
       <button class="btn-prim" onclick="takeCameraPhoto()">📸 Capturer</button>
     </div>
-    <video id="cameraVideo" autoplay="" playsinline="" style="width:100%;max-height:70vh;object-fit:contain;background:#000;display:block"></video>
+    <video id="cameraVideo" autoplay playsinline style="width:100%;max-height:70vh;object-fit:contain;background:#000;display:block"></video>
   </div>
 </div>
 <div id="photoPopup">
   <div id="photoTb">
     <span style="font-size:13px;font-weight:700;flex:1;color:var(--text)" id="photoTitle">Photo</span>
-    <button class="tbtn on" id="ph-pen" onclick="setPhotoTool(&#39;pen&#39;)" title="Crayon">✏️</button>
-    <button class="tbtn" id="ph-arrow" onclick="setPhotoTool(&#39;arrow&#39;)" title="Flèche">➡️</button>
-    <button class="tbtn" id="ph-text" onclick="setPhotoTool(&#39;text&#39;)" title="Texte">T</button>
-    <button class="tbtn" id="ph-erase" onclick="setPhotoTool(&#39;erase&#39;)" title="Gomme">⬜</button>
+    <button class="tbtn on" id="ph-pen" onclick="setPhotoTool('pen')" title="Crayon">✏️</button>
+    <button class="tbtn" id="ph-arrow" onclick="setPhotoTool('arrow')" title="Flèche">➡️</button>
+    <button class="tbtn" id="ph-text" onclick="setPhotoTool('text')" title="Texte">T</button>
+    <button class="tbtn" id="ph-erase" onclick="setPhotoTool('erase')" title="Gomme">⬜</button>
     <div class="tsep"></div>
-    <div class="cdot sel" style="background:#c0392b" onclick="setPhotoColor(&#39;#c0392b&#39;,this)"></div>
-    <div class="cdot" style="background:#f5a623" onclick="setPhotoColor(&#39;#f5a623&#39;,this)"></div>
-    <div class="cdot" style="background:#1e8a4a" onclick="setPhotoColor(&#39;#1e8a4a&#39;,this)"></div>
-    <div class="cdot" style="background:#ffffff" onclick="setPhotoColor(&#39;#ffffff&#39;,this)"></div>
+    <div class="cdot sel" style="background:#c0392b" onclick="setPhotoColor('#c0392b',this)"></div>
+    <div class="cdot" style="background:#f5a623" onclick="setPhotoColor('#f5a623',this)"></div>
+    <div class="cdot" style="background:#1e8a4a" onclick="setPhotoColor('#1e8a4a',this)"></div>
+    <div class="cdot" style="background:#ffffff" onclick="setPhotoColor('#ffffff',this)"></div>
     <input type="range" id="phSzR" min="1" max="20" value="4" oninput="phSw=+this.value">
     <div class="tsep"></div>
     <button class="tbtn" onclick="saveAnnotPhoto()" title="Sauvegarder" style="color:var(--ok);font-weight:700">💾</button>
@@ -716,7 +735,7 @@ input[type=number]{-moz-appearance:textfield}
 </div>
 
 <div id="photoViewPopup">
-  <img id="photoViewImg" src="file:///C:/Users/conta/Downloads/index2_7.html" alt="">
+  <img id="photoViewImg" src="" alt="">
   <div class="pv-bar">
     <button class="pv-btn" onclick="deleteViewPhoto()">🗑 Supprimer</button>
     <button class="pv-btn" onclick="downloadViewPhoto()">⬇ Télécharger</button>
@@ -1836,57 +1855,149 @@ async function saveAnnotPhoto(){
   renderPhotoGallery();
 }
 
-async function renderPhotoGallery(){
-  var gallery=document.getElementById('photoGallery'); if(!gallery) return;
-  if(!db){ gallery.innerHTML='<div class="photo-empty"><div class="pe-ico">📷</div><div>Base de donn\u00e9es non disponible</div></div>'; return; }
-  var photos=await dbGetAll('photos');
-  if(!photos||!photos.length){
-    gallery.innerHTML='<div class="photo-empty"><div class="pe-ico">📷</div><div>Aucune photo pour l\u2019instant<br><span style="font-size:12px">Utilisez le bouton 📷 Photo sur un mat\u00e9riel</span></div></div>'; return;
+// ─── GALERIE PHOTOS ─────────────────────────────────────────────────────────
+var photoSelMode = false;
+
+function togglePhotoSelMode(){
+  photoSelMode = !photoSelMode;
+  var gallery = document.getElementById('photoGallery');
+  var bar = document.getElementById('photoSelBar');
+  var btn = document.getElementById('btnPhotoSelMode');
+  if(photoSelMode){
+    gallery.classList.add('photo-sel-mode');
+    bar.classList.add('visible');
+    btn.textContent = '\u2612 Terminer';
+    updatePhotoSelCount();
+  } else {
+    gallery.classList.remove('photo-sel-mode');
+    bar.classList.remove('visible');
+    btn.textContent = '\u2611 S\u00e9lectionner';
+    // D\u00e9cocher tout
+    document.querySelectorAll('#photoGallery .photo-card').forEach(function(c){ c.classList.remove('selected'); var cb=c.querySelector('.pc-cb'); if(cb) cb.checked=false; });
+    document.getElementById('photoCheckAll').checked = false;
+    updatePhotoSelCount();
   }
-  var sorted=photos.slice().sort(function(a,b){return new Date(b.date)-new Date(a.date);});
-  gallery.innerHTML='<div class="photo-grid"></div>';
-  var grid=gallery.querySelector('.photo-grid');
+}
+
+function updatePhotoSelCount(){
+  var sel = document.querySelectorAll('#photoGallery .photo-card.selected').length;
+  var total = document.querySelectorAll('#photoGallery .photo-card').length;
+  var span = document.getElementById('photoSelCount');
+  if(span) span.textContent = sel ? sel+' photo'+(sel>1?'s':'')+' s\u00e9lectionn\u00e9e'+(sel>1?'s':'') : 'Aucune s\u00e9lection';
+  var btnD = document.getElementById('btnPhotoDeleteSel');
+  var btnDl = document.getElementById('btnPhotoDownloadSel');
+  if(btnD) btnD.disabled = sel === 0;
+  if(btnDl) btnDl.disabled = sel === 0;
+  var allCb = document.getElementById('photoCheckAll');
+  if(allCb) allCb.checked = total > 0 && sel === total;
+}
+
+function photoCheckAllToggle(checked){
+  document.querySelectorAll('#photoGallery .photo-card').forEach(function(card){
+    var cb = card.querySelector('.pc-cb');
+    if(checked){ card.classList.add('selected'); if(cb) cb.checked=true; }
+    else { card.classList.remove('selected'); if(cb) cb.checked=false; }
+  });
+  updatePhotoSelCount();
+}
+
+async function photoDeleteSelected(){
+  var cards = Array.from(document.querySelectorAll('#photoGallery .photo-card.selected'));
+  if(!cards.length) return;
+  var n = cards.length;
+  if(!confirm('Supprimer ' + n + ' photo' + (n>1?'s':'') + ' ? Cette action est irr\u00e9versible.')) return;
+  var ids = cards.map(function(c){ return parseInt(c.dataset.id); }).filter(function(id){ return !isNaN(id); });
+  for(var i=0;i<ids.length;i++){ try{ await dbDelete('photos', ids[i]); }catch(e){} }
+  snack('\U0001f5d1 ' + n + ' photo' + (n>1?'s':'') + ' supprim\u00e9e'+(n>1?'s':''));
+  // Quitter le mode s\u00e9lection et rafra\u00eechir
+  photoSelMode = true; // forcer bascule
+  togglePhotoSelMode();
+  await renderPhotoGallery();
+}
+
+function photoDownloadSelected(){
+  var cards = Array.from(document.querySelectorAll('#photoGallery .photo-card.selected'));
+  if(!cards.length) return;
+  cards.forEach(function(card, i){
+    var img = card.querySelector('img');
+    var name = card.dataset.name || ('photo_'+i);
+    setTimeout(function(){
+      var a = document.createElement('a');
+      a.href = img.src;
+      a.download = name + '.jpg';
+      a.click();
+    }, i * 300);
+  });
+  snack('\u2b07 T\u00e9l\u00e9chargement de ' + cards.length + ' photo'+(cards.length>1?'s':'')+'...');
+}
+
+async function renderPhotoGallery(){
+  var gallery = document.getElementById('photoGallery'); if(!gallery) return;
+  if(!db){ gallery.innerHTML='<div class="photo-empty"><div class="pe-ico">\U0001f4f7</div><div>Base de donn\u00e9es non disponible</div></div>'; return; }
+  var photos = await dbGetAll('photos');
+  var countEl = document.getElementById('photoGalleryCount');
+  if(!photos||!photos.length){
+    gallery.innerHTML='<div class="photo-empty"><div class="pe-ico">\U0001f4f7</div><div>Aucune photo pour l\u2019instant<br><span style="font-size:12px">Utilisez le bouton \U0001f4f7 Photo sur un mat\u00e9riel</span></div></div>';
+    if(countEl) countEl.textContent = 'Photos prises sur le chantier';
+    return;
+  }
+  if(countEl) countEl.textContent = photos.length + ' photo'+(photos.length>1?'s':'')+' enregistr\u00e9e'+(photos.length>1?'s':'');
+  var sorted = photos.slice().sort(function(a,b){ return new Date(b.date)-new Date(a.date); });
+  // Conserver mode s\u00e9lection si actif
+  var selIds = {};
+  if(photoSelMode){
+    document.querySelectorAll('#photoGallery .photo-card.selected').forEach(function(c){ selIds[c.dataset.id]=true; });
+  }
+  gallery.innerHTML = '<div class="photo-grid'+(photoSelMode?' photo-sel-mode':'')+'"></div>';
+  var grid = gallery.querySelector('.photo-grid');
   sorted.forEach(function(photo){
-    var card=document.createElement('div'); card.className='photo-card';
-    var d=new Date(photo.date);
-    var dateStr=d.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'2-digit'})+' '+d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
-    card.innerHTML='<img src="'+photo.dataUrl+'" alt="'+esc(photo.name)+'"><div class="pc-info"><div class="pc-rep">'+esc(photo.repere||'\u2014')+'</div><div class="pc-name">'+esc(photo.name)+'</div><div class="pc-name" style="color:var(--muted)">'+dateStr+'</div></div>';
-    card.addEventListener('click',function(){ openPhotoView(photo); });
+    var card = document.createElement('div');
+    card.className = 'photo-card' + (selIds[photo.id]?' selected':'');
+    card.dataset.id = photo.id;
+    card.dataset.name = photo.name||'photo';
+    var d = new Date(photo.date);
+    var dateStr = d.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'2-digit'})+' '+d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+    card.innerHTML = '<input type="checkbox" class="pc-cb"'+(selIds[photo.id]?' checked':'')+' onclick="photoCardCbClick(event,this)">'
+      +'<img src="'+photo.dataUrl+'" alt="'+esc(photo.name)+'" loading="lazy">'
+      +'<div class="pc-info"><div class="pc-rep">'+esc(photo.repere||'\u2014')+'</div>'
+      +'<div class="pc-name">'+esc(photo.name)+'</div>'
+      +'<div class="pc-name" style="color:var(--muted)">'+dateStr+'</div></div>';
+    card.addEventListener('click', function(e){
+      if(photoSelMode){
+        if(e.target.classList.contains('pc-cb')) return; // géré par photoCardCbClick
+        card.classList.toggle('selected');
+        var cb = card.querySelector('.pc-cb');
+        if(cb) cb.checked = card.classList.contains('selected');
+        updatePhotoSelCount();
+      } else {
+        openPhotoView(photo);
+      }
+    });
     grid.appendChild(card);
   });
+  if(photoSelMode){ gallery.classList.add('photo-sel-mode'); updatePhotoSelCount(); }
+}
+
+function photoCardCbClick(e, cb){
+  e.stopPropagation();
+  var card = cb.closest('.photo-card');
+  if(cb.checked) card.classList.add('selected'); else card.classList.remove('selected');
+  updatePhotoSelCount();
 }
 
 function openPhotoView(photo){
-  viewPhotoId=photo.id;
-  document.getElementById('photoViewImg').src=photo.dataUrl;
-  document.getElementById('photoViewInfo').textContent=photo.name+' \u2014 '+photo.repere+' \u2014 '+photo.local;
+  viewPhotoId = photo.id;
+  document.getElementById('photoViewImg').src = photo.dataUrl;
+  document.getElementById('photoViewInfo').textContent = photo.name+' \u2014 '+photo.repere+' \u2014 '+photo.local;
   document.getElementById('photoViewPopup').classList.add('open');
 }
 function closePhotoView(){ document.getElementById('photoViewPopup').classList.remove('open'); viewPhotoId=null; }
 async function deleteViewPhoto(){
   if(!viewPhotoId||!confirm('Supprimer cette photo ?')) return;
-  await dbDelete('photos',viewPhotoId); closePhotoView(); renderPhotoGallery(); snack('🗑 Photo supprim\u00e9e');
+  await dbDelete('photos',viewPhotoId); closePhotoView(); renderPhotoGallery(); snack('\U0001f5d1 Photo supprim\u00e9e');
 }
 function downloadViewPhoto(){
   var img=document.getElementById('photoViewImg'); var a=document.createElement('a'); a.download='photo_'+Date.now()+'.jpg'; a.href=img.src; a.click();
-}
-function renderPhotoGallery(){ renderPhotoGallery_async(); }
-async function renderPhotoGallery_async(){
-  var gallery=document.getElementById('photoGallery'); if(!gallery) return;
-  if(!db){ gallery.innerHTML='<div class="photo-empty"><div class="pe-ico">📷</div><div>Base de donn\u00e9es non disponible</div></div>'; return; }
-  var photos=await dbGetAll('photos');
-  if(!photos||!photos.length){ gallery.innerHTML='<div class="photo-empty"><div class="pe-ico">📷</div><div>Aucune photo pour l\u2019instant<br><span style="font-size:12px">Utilisez le bouton 📷 Photo sur un mat\u00e9riel</span></div></div>'; return; }
-  var sorted=photos.slice().sort(function(a,b){return new Date(b.date)-new Date(a.date);});
-  gallery.innerHTML='<div class="photo-grid"></div>';
-  var grid=gallery.querySelector('.photo-grid');
-  sorted.forEach(function(photo){
-    var card=document.createElement('div'); card.className='photo-card';
-    var d=new Date(photo.date);
-    var dateStr=d.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'2-digit'})+' '+d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
-    card.innerHTML='<img src="'+photo.dataUrl+'" alt="'+esc(photo.name)+'"><div class="pc-info"><div class="pc-rep">'+esc(photo.repere||'\u2014')+'</div><div class="pc-name">'+esc(photo.name)+'</div><div class="pc-name" style="color:var(--muted)">'+dateStr+'</div></div>';
-    card.addEventListener('click',function(){ openPhotoView(photo); });
-    grid.appendChild(card);
-  });
 }
 
 // ─── AVANCEMENT ─────────────────────────────────────────────────────────────
@@ -3147,7 +3258,7 @@ function getStatutGauge(r){
       <div class="rpt-section" style="margin-top:0">Photos à inclure</div>
       <div style="margin-bottom:8px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
         <label class="rpt-opt-row" style="flex:none">
-          <input type="radio" name="rptPhotoMode" value="reperes" checked="" onchange="updateRapportPhotosMode()">
+          <input type="radio" name="rptPhotoMode" value="reperes" checked onchange="updateRapportPhotosMode()">
           Par repère matériel
         </label>
         <label class="rpt-opt-row" style="flex:none">
@@ -3176,7 +3287,7 @@ function getStatutGauge(r){
           Taille des photos :&nbsp;
           <select id="rapportPhotosTaille" style="width:auto;padding:4px 8px;font-size:12px">
             <option value="small">Petite (3 par ligne)</option>
-            <option value="medium" selected="">Moyenne (2 par ligne)</option>
+            <option value="medium" selected>Moyenne (2 par ligne)</option>
             <option value="large">Grande (1 par ligne)</option>
           </select>
         </label>
@@ -3214,5 +3325,5 @@ window.addEventListener('resize',function(){ if(document.getElementById('tab-pla
 
 
 </script>
-
-</body></html>
+</body>
+</html>
