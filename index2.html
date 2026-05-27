@@ -1908,7 +1908,7 @@ async function photoDeleteSelected(){
   if(!confirm('Supprimer ' + n + ' photo' + (n>1?'s':'') + ' ? Cette action est irr\u00e9versible.')) return;
   var ids = cards.map(function(c){ return parseInt(c.dataset.id); }).filter(function(id){ return !isNaN(id); });
   for(var i=0;i<ids.length;i++){ try{ await dbDelete('photos', ids[i]); }catch(e){} }
-  snack('\U0001f5d1 ' + n + ' photo' + (n>1?'s':'') + ' supprim\u00e9e'+(n>1?'s':''));
+  snack('🗑 ' + n + ' photo' + (n>1?'s':'') + ' supprim\u00e9e'+(n>1?'s':''));
   // Quitter le mode s\u00e9lection et rafra\u00eechir
   photoSelMode = true; // forcer bascule
   togglePhotoSelMode();
@@ -1933,11 +1933,11 @@ function photoDownloadSelected(){
 
 async function renderPhotoGallery(){
   var gallery = document.getElementById('photoGallery'); if(!gallery) return;
-  if(!db){ gallery.innerHTML='<div class="photo-empty"><div class="pe-ico">\U0001f4f7</div><div>Base de donn\u00e9es non disponible</div></div>'; return; }
+  if(!db){ gallery.innerHTML='<div class="photo-empty"><div class="pe-ico">📷</div><div>Base de donn\u00e9es non disponible</div></div>'; return; }
   var photos = await dbGetAll('photos');
   var countEl = document.getElementById('photoGalleryCount');
   if(!photos||!photos.length){
-    gallery.innerHTML='<div class="photo-empty"><div class="pe-ico">\U0001f4f7</div><div>Aucune photo pour l\u2019instant<br><span style="font-size:12px">Utilisez le bouton \U0001f4f7 Photo sur un mat\u00e9riel</span></div></div>';
+    gallery.innerHTML='<div class="photo-empty"><div class="pe-ico">📷</div><div>Aucune photo pour l\u2019instant<br><span style="font-size:12px">Utilisez le bouton 📷 Photo sur un mat\u00e9riel</span></div></div>';
     if(countEl) countEl.textContent = 'Photos prises sur le chantier';
     return;
   }
@@ -1994,7 +1994,7 @@ function openPhotoView(photo){
 function closePhotoView(){ document.getElementById('photoViewPopup').classList.remove('open'); viewPhotoId=null; }
 async function deleteViewPhoto(){
   if(!viewPhotoId||!confirm('Supprimer cette photo ?')) return;
-  await dbDelete('photos',viewPhotoId); closePhotoView(); renderPhotoGallery(); snack('\U0001f5d1 Photo supprim\u00e9e');
+  await dbDelete('photos',viewPhotoId); closePhotoView(); renderPhotoGallery(); snack('🗑 Photo supprim\u00e9e');
 }
 function downloadViewPhoto(){
   var img=document.getElementById('photoViewImg'); var a=document.createElement('a'); a.download='photo_'+Date.now()+'.jpg'; a.href=img.src; a.click();
