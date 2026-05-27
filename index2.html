@@ -864,7 +864,14 @@ function loadXLS(inp){
   fileName=f.name;
   var r=new FileReader();
   r.onload=function(e){
-    try{ wb=XLSX.read(e.target.result,{type:'array',cellStyles:true,bookVBA:true,bookDeps:true,sheetStubs:true,cellDates:true}); parseData(); showXLSOk(); saveLocal(); saveWbToIDB(); snack('📊 '+fileName+' charg\u00e9','#1e8a4a'); }
+    try{
+      var rawArray = new Uint8Array(e.target.result);
+      wb=XLSX.read(rawArray,{type:'array',cellStyles:true,bookVBA:true,bookDeps:true,sheetStubs:true,cellDates:true});
+      parseData(); showXLSOk(); saveLocal();
+      // Sauvegarder l'ArrayBuffer ORIGINAL (non réécrit par SheetJS)
+      if(db) dbPut('xlsfile',{id:'current',data:rawArray,fileName:fileName,savedAt:Date.now()}).catch(function(e){console.warn('IDB save err',e);});
+      snack('📊 '+fileName+' charg\u00e9','#1e8a4a');
+    }
     catch(err){ alert('Erreur : '+err.message); }
   };
   r.readAsArrayBuffer(f);
@@ -2024,73 +2031,65 @@ function renderAvancement(){
 }
 
 // ─── SYNC & EXPORT ───────────────────────────────────────────────────────────
+// syncRow : met à jour le workbook en mémoire (pour l'affichage)
 function syncRow(row){
   if(!wb||row._row<0) return; var ws=wb.Sheets['Mater']; if(!ws) return;
-  var r=row._row; setCell(ws,COL.livre,r,row.livre?'X':''); setCell(ws,COL.installe,r,row.installe?'X':''); setCell(ws,COL.mes,r,row.mes?'X':''); setCell(ws,COL.remarque,r,row.remarque||'');
+  var r=row._row;
+  setCell(ws,COL.livre,r,row.livre?'X':'');
+  setCell(ws,COL.installe,r,row.installe?'X':'');
+  setCell(ws,COL.mes,r,row.mes?'X':'');
+  setCell(ws,COL.remarque,r,row.remarque||'');
 }
 function setCell(ws,col,row,val){
   var addr=XLSX.utils.encode_cell({r:row,c:col});
-  if(!val||val===''){
-    // Garder la cellule avec valeur vide plutôt que de la supprimer (évite les trous XML)
-    ws[addr]={v:'',t:'s'};
-    return;
-  }
-  ws[addr]={v:val,t:'s'};
-}
-function fixWsRef(ws){
-  // Recalcule !ref à partir des cellules réellement présentes
-  var cells=Object.keys(ws).filter(function(k){return k[0]!=='!'});
-  if(!cells.length) return;
-  var dec=cells.map(function(k){return XLSX.utils.decode_cell(k);});
-  var minR=Math.min.apply(null,dec.map(function(d){return d.r;}));
-  var maxR=Math.max.apply(null,dec.map(function(d){return d.r;}));
-  var minC=Math.min.apply(null,dec.map(function(d){return d.c;}));
-  var maxC=Math.max.apply(null,dec.map(function(d){return d.c;}));
-  ws['!ref']=XLSX.utils.encode_range({s:{r:minR,c:minC},e:{r:maxR,c:maxC}});
+  ws[addr]={v:val||'',t:'s'};
 }
 
-function getWb(){
+// ── Récupère l'ArrayBuffer original brut depuis IDB ──────────────────────────
+function getRawBuffer(){
   return new Promise(function(resolve,reject){
-    // Attendre que XLSX soit disponible (chargement async)
-    if(typeof XLSX === 'undefined'){
-      var waited = 0;
-      var wait = setInterval(function(){
-        waited += 100;
-        if(typeof XLSX !== 'undefined'){ clearInterval(wait); doGetWb(resolve,reject); }
-        else if(waited > 8000){ clearInterval(wait); reject('La librairie Excel (XLSX) n\'a pas pu se charger. Vérifiez votre connexion internet.'); }
-      }, 100);
-      return;
-    }
-    doGetWb(resolve, reject);
+    if(!db){ reject('Aucun fichier chargé'); return; }
+    dbGetAll('xlsfile').then(function(rows){
+      if(!rows||!rows.length){ reject('Fichier Excel non trouvé en cache.\nImportez-le une fois depuis Drive ou localement.'); return; }
+      var data = rows[0].data;
+      var fname = rows[0].fileName||fileName||'export.xlsx';
+      if(!fileName) fileName=fname;
+      resolve({data:data, fileName:fname});
+    }).catch(function(e){ reject('Erreur IDB: '+e); });
   });
 }
-function doGetWb(resolve, reject){
-    if(wb){ resolve(wb); return; }
-    if(!db){ reject('Aucun fichier chargé'); return; }
-    snack('⏳ Chargement du fichier…');
-    dbGetAll('xlsfile').then(function(rows){
-      if(!rows||!rows.length){
-        reject('Le fichier Excel n\'est pas encore en cache.\nVeuillez l\'importer une fois depuis Drive ou localement\npuis l\'export fonctionnera automatiquement.');
-        return;
-      }
-      try{ wb=XLSX.read(rows[0].data,{type:'array',cellStyles:true,bookVBA:true,bookDeps:true,sheetStubs:true,cellDates:true}); if(!fileName) fileName=rows[0].fileName||'export.xlsx'; resolve(wb); }
-      catch(e){ reject('Erreur lecture fichier: '+e.message); }
-    }).catch(function(e){ reject('Erreur IDB: '+e); });
-}
-function exportXLSX(){
-  getWb().then(function(workbook){
-    wsData.filter(function(r){return r._row>=0;}).forEach(syncRow);
-    var ws=workbook.Sheets['Mater'],range=XLSX.utils.decode_range(ws['!ref']||'A1'),nextRow=range.e.r+1;
-    wsData.filter(function(r){return r.isNew;}).forEach(function(row){
-      var sc=function(col,val){var addr=XLSX.utils.encode_cell({r:nextRow,c:col});ws[addr]={v:val,t:typeof val==='number'?'n':'s'};};
-      sc(COL.local,row.local);sc(COL.materiel,row.materiel);sc(COL.repere,row.repere);sc(COL.nbre,Number(row.nbre)||1);
-      if(row.lot)sc(COL.lot,row.lot);if(row.livre)sc(COL.livre,'X');if(row.installe)sc(COL.installe,'X');
-      if(row.mes)sc(COL.mes,'X');if(row.remarque)sc(COL.remarque,row.remarque);
-      range.e.r=nextRow; nextRow++;
+
+// ── Produit un Blob XLSX en partant du fichier original et en appliquant les modifs ──
+function buildExportBlob(){
+  return getRawBuffer().then(function(raw){
+    // Relire le fichier original brut — sans options destructives
+    var workbook = XLSX.read(raw.data, {type:'array', cellStyles:true, bookVBA:true, bookDeps:true, sheetStubs:true, cellDates:true});
+    var ws = workbook.Sheets['Mater'];
+    if(!ws) throw new Error("Onglet 'Mater' introuvable");
+    // Appliquer uniquement les modifications (livre/installe/mes/remarque)
+    wsData.filter(function(r){return r._row>=0;}).forEach(function(row){
+      setCell(ws,COL.livre,row._row,row.livre?'X':'');
+      setCell(ws,COL.installe,row._row,row.installe?'X':'');
+      setCell(ws,COL.mes,row._row,row.mes?'X':'');
+      setCell(ws,COL.remarque,row._row,row.remarque||'');
     });
-    fixWsRef(ws);
-    XLSX.writeFile(workbook,fileName.replace(/\.(xls|xlsx)$/i,'')+'_pointage.xlsx',{bookType:'xlsx',cellStyles:true,compression:true});
-    snack('✅ Fichier exporté !');
+    // Écrire en xlsx — sans cellStyles (source de corruption sur fichiers complexes)
+    var wbout = XLSX.write(workbook,{bookType:'xlsx',type:'array',compression:true});
+    var blob = new Blob([wbout],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    var exportName = raw.fileName.replace(/\.(xls|xlsx)$/i,'')+'_pointage.xlsx';
+    return {blob:blob, name:exportName};
+  });
+}
+
+function exportXLSX(){
+  if(typeof XLSX === 'undefined'){ snack('\u23f3 Librairie Excel en cours de chargement…'); return; }
+  buildExportBlob().then(function(result){
+    var a=document.createElement('a');
+    a.href=URL.createObjectURL(result.blob);
+    a.download=result.name;
+    a.click();
+    setTimeout(function(){URL.revokeObjectURL(a.href);},5000);
+    snack('\u2705 Fichier export\u00e9 !');
   }).catch(function(e){ alert(e); });
 }
 async function exportProjetDrive(){
@@ -2185,22 +2184,11 @@ async function uploadAnnotSnapToDrive(key,dataUrl){
 
 function exportToDrive(){
   if(!driveToken||!folderIds.xls) return Promise.reject('Non connecté à Drive');
-  return getWb().then(function(workbook){
-    wsData.filter(function(r){return r._row>=0;}).forEach(syncRow);
-    var ws=workbook.Sheets['Mater'],range=XLSX.utils.decode_range(ws['!ref']||'A1'),nextRow=range.e.r+1;
-    wsData.filter(function(r){return r.isNew;}).forEach(function(row){
-      var sc=function(col,val){var addr=XLSX.utils.encode_cell({r:nextRow,c:col});ws[addr]={v:val,t:typeof val==='number'?'n':'s'};};
-      sc(COL.local,row.local);sc(COL.materiel,row.materiel);sc(COL.repere,row.repere);sc(COL.nbre,Number(row.nbre)||1);
-      if(row.lot)sc(COL.lot,row.lot);if(row.livre)sc(COL.livre,'X');if(row.installe)sc(COL.installe,'X');
-      if(row.mes)sc(COL.mes,'X');if(row.remarque)sc(COL.remarque,row.remarque);
-      range.e.r=nextRow; nextRow++;
-    });
-    fixWsRef(ws);
-    var exportName=fileName.replace(/\.(xls|xlsx)$/i,'')+'_pointage.xlsx';
-    var wbout=XLSX.write(workbook,{bookType:'xlsx',type:'array',cellStyles:true,compression:true});
-    var blob=new Blob([wbout],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
-    snack('⏳ Export vers Drive…');
-    listDriveFiles(folderIds.xls,['.xlsx']).then(function(existing){
+  snack('\u23f3 Pr\u00e9paration export Drive\u2026');
+  return buildExportBlob().then(function(result){
+    var exportName=result.name;
+    var blob=result.blob;
+    return listDriveFiles(folderIds.xls,['.xlsx']).then(function(existing){
       var match=existing.filter(function(f){return f.name===exportName;})[0];
       var form=new FormData();
       form.append('metadata',new Blob([JSON.stringify(match?{name:exportName}:{name:exportName,parents:[folderIds.xls]})],{type:'application/json'}));
@@ -2209,10 +2197,10 @@ function exportToDrive(){
       return fetch(url,{method:match?'PATCH':'POST',headers:{Authorization:'Bearer '+driveToken},body:form});
     }).then(function(resp){
       if(!resp.ok) throw new Error('HTTP '+resp.status);
-      snack('✅ Exporté : '+exportName,'#1e8a4a');
+      snack('\u2705 Export\u00e9 : '+exportName,'#1e8a4a');
       listDriveFiles(folderIds.xls,['.xls','.xlsx']).then(function(f){driveXlsFiles=f;renderDriveXlsList(f);});
-    }).catch(function(e){ alert('Erreur export Drive : '+e.message); });
-  }).catch(function(e){ alert(e); });
+    });
+  }).catch(function(e){ alert('Erreur export Drive : '+(e.message||e)); });
 }
 
 
@@ -2305,8 +2293,12 @@ async function importSelectedXLS(){
   try{
     var r=await fetch('https://www.googleapis.com/drive/v3/files/'+file.id+'?alt=media',{headers:{Authorization:'Bearer '+driveToken}});
     if(!r.ok) throw new Error('HTTP '+r.status);
-    var buf=await r.arrayBuffer(); fileName=file.name; wb=XLSX.read(new Uint8Array(buf),{type:'array',cellStyles:true,bookVBA:true,bookDeps:true,sheetStubs:true,cellDates:true});
-    parseData(); showXLSOk(); saveLocal(); saveWbToIDB(); snack('📊 '+file.name+' import\u00e9','#1e8a4a');
+    var buf=await r.arrayBuffer(); fileName=file.name;
+    var rawArray=new Uint8Array(buf);
+    wb=XLSX.read(rawArray,{type:'array',cellStyles:true,bookVBA:true,bookDeps:true,sheetStubs:true,cellDates:true});
+    parseData(); showXLSOk(); saveLocal();
+    if(db) dbPut('xlsfile',{id:'current',data:rawArray,fileName:fileName,savedAt:Date.now()}).catch(function(e){console.warn('IDB save err',e);});
+    snack('📊 '+file.name+' import\u00e9','#1e8a4a');
   }catch(e){alert('Erreur : '+e.message);}
 }
 async function importSelectedPDFs(){
@@ -2377,13 +2369,8 @@ async function uploadAnnotatedPdfToDrive(){
 }
 
 function saveWbToIDB(){
-  if(!db||!wb) return;
-  try{
-    var wbout=XLSX.write(wb,{bookType:'xlsx',type:'array',cellStyles:true,compression:true});
-    dbPut('xlsfile',{id:'current',data:new Uint8Array(wbout),fileName:fileName,savedAt:Date.now()})
-      .then(function(){ console.log('XLS sauvegardé en IDB'); })
-      .catch(function(e){ console.warn('saveWbToIDB err:',e); });
-  }catch(e){ console.warn('saveWbToIDB serialize:',e); }
+  // Désactivé : le fichier original brut est sauvegardé directement à l'import
+  // Ne jamais réécrire via XLSX.write pour éviter la corruption du fichier Excel
 }
 
 function savePdfLS(name,data){
